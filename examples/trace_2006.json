@@ -1,0 +1,238 @@
+{
+  "P": 2,
+  "events": [
+    {
+      "kind": "send",
+      "tns": 32780,
+      "proc": 0,
+      "dst": 1,
+      "neuron": 1,
+      "stamp": 0,
+      "status": "",
+      "wnj": 0,
+      "wst": 0,
+      "ww": 1
+    },
+    {
+      "kind": "send",
+      "tns": 34997,
+      "proc": 0,
+      "dst": 1,
+      "neuron": 2,
+      "stamp": 1,
+      "status": "",
+      "wnj": 0,
+      "wst": 0,
+      "ww": 1
+    },
+    {
+      "kind": "send",
+      "tns": 36311,
+      "proc": 0,
+      "dst": 2,
+      "neuron": 3,
+      "stamp": 2,
+      "status": "",
+      "wnj": 0,
+      "wst": 0,
+      "ww": 1
+    },
+    {
+      "kind": "recv",
+      "tns": 3753349,
+      "proc": 0,
+      "dst": 2,
+      "neuron": 3,
+      "stamp": 2,
+      "status": "",
+      "wnj": 0,
+      "wst": 0,
+      "ww": 1
+    },
+    {
+      "kind": "compute",
+      "tns": 3779395,
+      "proc": 2,
+      "dst": 0,
+      "neuron": 3,
+      "stamp": 2,
+      "status": "",
+      "wnj": 0,
+      "wst": 0,
+      "ww": 1
+    },
+    {
+      "kind": "commit",
+      "tns": 3795890,
+      "proc": 2,
+      "dst": 0,
+      "neuron": 3,
+      "stamp": 2,
+      "status": "ok",
+      "wnj": 0,
+      "wst": 0,
+      "ww": 0
+    },
+    {
+      "kind": "send",
+      "tns": 3797710,
+      "proc": 2,
+      "dst": 1,
+      "neuron": 0,
+      "stamp": 3,
+      "status": "",
+      "wnj": 0,
+      "wst": 0,
+      "ww": -3
+    },
+    {
+      "kind": "recv",
+      "tns": 3807679,
+      "proc": 0,
+      "dst": 1,
+      "neuron": 1,
+      "stamp": 0,
+      "status": "",
+      "wnj": 0,
+      "wst": 0,
+      "ww": 1
+    },
+    {
+      "kind": "compute",
+      "tns": 3812664,
+      "proc": 1,
+      "dst": 0,
+      "neuron": 1,
+      "stamp": 0,
+      "status": "",
+      "wnj": 0,
+      "wst": 0,
+      "ww": 1
+    },
+    {
+      "kind": "commit",
+      "tns": 3819929,
+      "proc": 1,
+      "dst": 0,
+      "neuron": 1,
+      "stamp": 0,
+      "status": "ok",
+      "wnj": 0,
+      "wst": 0,
+      "ww": 0
+    },
+    {
+      "kind": "compute",
+      "tns": 3831499,
+      "proc": 1,
+      "dst": 0,
+      "neuron": 0,
+      "stamp": 3,
+      "status": "",
+      "wnj": 0,
+      "wst": 0,
+      "ww": 2
+    },
+    {
+      "kind": "recv",
+      "tns": 24033856,
+      "proc": 0,
+      "dst": 1,
+      "neuron": 2,
+      "stamp": 1,
+      "status": "",
+      "wnj": 0,
+      "wst": 0,
+      "ww": 1
+    },
+    {
+      "kind": "compute",
+      "tns": 24056005,
+      "proc": 1,
+      "dst": 0,
+      "neuron": 2,
+      "stamp": 1,
+      "status": "",
+      "wnj": 0,
+      "wst": 0,
+      "ww": 1
+    },
+    {
+      "kind": "commit",
+      "tns": 24058620,
+      "proc": 1,
+      "dst": 0,
+      "neuron": 2,
+      "stamp": 1,
+      "status": "ok",
+      "wnj": 0,
+      "wst": 0,
+      "ww": 0
+    },
+    {
+      "kind": "compute",
+      "tns": 25117473,
+      "proc": 1,
+      "dst": 0,
+      "neuron": 0,
+      "stamp": 3,
+      "status": "",
+      "wnj": 0,
+      "wst": 0,
+      "ww": 2
+    },
+    {
+      "kind": "commit",
+      "tns": 25120167,
+      "proc": 1,
+      "dst": 0,
+      "neuron": 0,
+      "stamp": 3,
+      "status": "straggler",
+      "wnj": 0,
+      "wst": 3,
+      "ww": -3
+    },
+    {
+      "kind": "recv",
+      "tns": 30541428,
+      "proc": 2,
+      "dst": 1,
+      "neuron": 0,
+      "stamp": 3,
+      "status": "",
+      "wnj": 0,
+      "wst": 0,
+      "ww": -3
+    },
+    {
+      "kind": "compute",
+      "tns": 30550035,
+      "proc": 1,
+      "dst": 0,
+      "neuron": 0,
+      "stamp": 3,
+      "status": "",
+      "wnj": 0,
+      "wst": 0,
+      "ww": -3
+    }
+  ],
+  "guard": "2006",
+  "latency": "2ms",
+  "scenario": "cancel",
+  "truth": [
+    [
+      0,
+      1
+    ],
+    [
+      1,
+      2
+    ],
+    [
+      2,
+      3
+    ]
+  ]
+}

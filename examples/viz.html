@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>DAMNED — trace playback</title>
+<style>
+  :root{
+    --bg:#0d1117; --panel:#161b22; --line:#30363d; --text:#e6edf3; --muted:#8b949e;
+    --blue:#58a6ff; --blue-dim:#13294d; --purple:#bc8cff; --purple-dim:#231a3a;
+    --green:#3fb950; --amber:#d29922; --red:#f85149; --pink:#d4537e;
+    --mono:"SF Mono",ui-monospace,"Cascadia Code",Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);
+       font-size:14px;line-height:1.6;padding:24px;max-width:1000px;margin:0 auto}
+  h1{font-size:20px;font-weight:600;margin:0 0 4px}
+  .sub{color:var(--muted);margin:0 0 20px;font-size:13px}
+  .bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+  button,label.file{background:transparent;color:var(--text);border:1px solid var(--line);
+    border-radius:6px;padding:7px 14px;font-size:13px;cursor:pointer;font-family:var(--sans)}
+  button:hover,label.file:hover{border-color:var(--muted)}
+  button:disabled{opacity:.4;cursor:default}
+  button.active{border-color:var(--blue);color:var(--blue)}
+  input[type=file]{display:none}
+  input[type=range]{flex:1;min-width:120px;accent-color:var(--blue)}
+  .meta{font-family:var(--mono);font-size:12px;color:var(--muted);margin-left:auto}
+  .verdict{font-weight:500;font-size:14px}
+  svg{width:100%;height:auto;display:block;background:var(--panel);
+      border:1px solid var(--line);border-radius:12px;margin:8px 0 4px}
+  .lbl{fill:var(--muted);font-family:var(--sans);font-size:12px}
+  .lbl-h{fill:var(--text);font-family:var(--sans);font-size:13px;font-weight:500}
+  .clock{font-family:var(--mono);font-size:12px;color:var(--muted);margin:2px 0 14px;text-align:right}
+  #log{font-family:var(--mono);font-size:12.5px;line-height:1.75;color:var(--muted);
+       background:var(--panel);border:1px solid var(--line);border-radius:12px;
+       padding:14px 16px;min-height:120px;white-space:pre-wrap}
+  .row-ok{color:var(--muted)} .row-send{color:var(--blue)} .row-recv{color:var(--purple)}
+  .row-compute{color:var(--amber)} .row-straggler{color:var(--red);font-weight:600}
+  a{color:var(--blue)}
+</style>
+</head>
+<body>
+<h1>DAMNED — trace playback</h1>
+<p class="sub">Animates a real run of <code>damned.go</code>. Load a trace written with
+  <code>-trace=out.json</code>, or use one of the built-in samples. Processors are lanes;
+  logical time runs left→right; the diagonal is a message crossing the wire.</p>
+
+<div class="bar">
+  <label class="file">Load trace JSON<input type="file" id="file" accept=".json"/></label>
+  <button id="s2006" onclick="loadSample('2006')">sample: 2006</button>
+  <button id="s2009" onclick="loadSample('2009')">sample: 2009</button>
+  <span class="meta" id="meta"></span>
+</div>
+
+<div class="bar">
+  <button id="play" onclick="togglePlay()">▶ play</button>
+  <button onclick="restart()">↺ restart</button>
+  <input type="range" id="scrub" min="0" max="0" value="0"/>
+  <select id="speed" onchange="speed=+this.value" style="background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:6px;padding:6px">
+    <option value="1">1×</option><option value="2">2×</option>
+    <option value="4" selected>4×</option><option value="8">8×</option>
+  </select>
+  <span class="verdict" id="verdict"></span>
+</div>
+
+<svg id="stage" viewBox="0 0 940 300" role="img" aria-label="processor lanes over time"></svg>
+<div class="clock" id="clock">t = 0.00 ms</div>
+<div id="log"></div>
+
+<script>
+const SAMPLES = {"2006":{"P": 2, "events": [{"kind": "send", "tns": 32780, "proc": 0, "dst": 1, "neuron": 1, "stamp": 0, "status": "", "wnj": 0, "wst": 0, "ww": 1}, {"kind": "send", "tns": 34997, "proc": 0, "dst": 1, "neuron": 2, "stamp": 1, "status": "", "wnj": 0, "wst": 0, "ww": 1}, {"kind": "send", "tns": 36311, "proc": 0, "dst": 2, "neuron": 3, "stamp": 2, "status": "", "wnj": 0, "wst": 0, "ww": 1}, {"kind": "recv", "tns": 3753349, "proc": 0, "dst": 2, "neuron": 3, "stamp": 2, "status": "", "wnj": 0, "wst": 0, "ww": 1}, {"kind": "compute", "tns": 3779395, "proc": 2, "dst": 0, "neuron": 3, "stamp": 2, "status": "", "wnj": 0, "wst": 0, "ww": 1}, {"kind": "commit", "tns": 3795890, "proc": 2, "dst": 0, "neuron": 3, "stamp": 2, "status": "ok", "wnj": 0, "wst": 0, "ww": 0}, {"kind": "send", "tns": 3797710, "proc": 2, "dst": 1, "neuron": 0, "stamp": 3, "status": "", "wnj": 0, "wst": 0, "ww": -3}, {"kind": "recv", "tns": 3807679, "proc": 0, "dst": 1, "neuron": 1, "stamp": 0, "status": "", "wnj": 0, "wst": 0, "ww": 1}, {"kind": "compute", "tns": 3812664, "proc": 1, "dst": 0, "neuron": 1, "stamp": 0, "status": "", "wnj": 0, "wst": 0, "ww": 1}, {"kind": "commit", "tns": 3819929, "proc": 1, "dst": 0, "neuron": 1, "stamp": 0, "status": "ok", "wnj": 0, "wst": 0, "ww": 0}, {"kind": "compute", "tns": 3831499, "proc": 1, "dst": 0, "neuron": 0, "stamp": 3, "status": "", "wnj": 0, "wst": 0, "ww": 2}, {"kind": "recv", "tns": 24033856, "proc": 0, "dst": 1, "neuron": 2, "stamp": 1, "status": "", "wnj": 0, "wst": 0, "ww": 1}, {"kind": "compute", "tns": 24056005, "proc": 1, "dst": 0, "neuron": 2, "stamp": 1, "status": "", "wnj": 0, "wst": 0, "ww": 1}, {"kind": "commit", "tns": 24058620, "proc": 1, "dst": 0, "neuron": 2, "stamp": 1, "status": "ok", "wnj": 0, "wst": 0, "ww": 0}, {"kind": "compute", "tns": 25117473, "proc": 1, "dst": 0, "neuron": 0, "stamp": 3, "status": "", "wnj": 0, "wst": 0, "ww": 2}, {"kind": "commit", "tns": 25120167, "proc": 1, "dst": 0, "neuron": 0, "stamp": 3, "status": "straggler", "wnj": 0, "wst": 3, "ww": -3}, {"kind": "recv", "tns": 30541428, "proc": 2, "dst": 1, "neuron": 0, "stamp": 3, "status": "", "wnj": 0, "wst": 0, "ww": -3}, {"kind": "compute", "tns": 30550035, "proc": 1, "dst": 0, "neuron": 0, "stamp": 3, "status": "", "wnj": 0, "wst": 0, "ww": -3}], "guard": "2006", "latency": "2ms", "scenario": "cancel", "truth": [[0, 1], [1, 2], [2, 3]]},"2009":{"P": 2, "events": [{"kind": "send", "tns": 40989, "proc": 0, "dst": 1, "neuron": 1, "stamp": 0, "status": "", "wnj": 0, "wst": 0, "ww": 1}, {"kind": "send", "tns": 44223, "proc": 0, "dst": 1, "neuron": 2, "stamp": 1, "status": "", "wnj": 0, "wst": 0, "ww": 1}, {"kind": "send", "tns": 45013, "proc": 0, "dst": 2, "neuron": 3, "stamp": 2, "status": "", "wnj": 0, "wst": 0, "ww": 1}, {"kind": "recv", "tns": 2236583, "proc": 0, "dst": 2, "neuron": 3, "stamp": 2, "status": "", "wnj": 0, "wst": 0, "ww": 1}, {"kind": "recv", "tns": 2248205, "proc": 0, "dst": 1, "neuron": 1, "stamp": 0, "status": "", "wnj": 0, "wst": 0, "ww": 1}, {"kind": "recv", "tns": 4371407, "proc": 0, "dst": 1, "neuron": 2, "stamp": 1, "status": "", "wnj": 0, "wst": 0, "ww": 1}, {"kind": "compute", "tns": 8761861, "proc": 1, "dst": 0, "neuron": 1, "stamp": 0, "status": "", "wnj": 0, "wst": 0, "ww": 1}, {"kind": "commit", "tns": 8772943, "proc": 1, "dst": 0, "neuron": 1, "stamp": 0, "status": "ok", "wnj": 0, "wst": 0, "ww": 0}, {"kind": "compute", "tns": 10978875, "proc": 1, "dst": 0, "neuron": 2, "stamp": 1, "status": "", "wnj": 0, "wst": 0, "ww": 1}, {"kind": "commit", "tns": 10981286, "proc": 1, "dst": 0, "neuron": 2, "stamp": 1, "status": "ok", "wnj": 0, "wst": 0, "ww": 0}, {"kind": "compute", "tns": 14292264, "proc": 2, "dst": 0, "neuron": 3, "stamp": 2, "status": "", "wnj": 0, "wst": 0, "ww": 1}, {"kind": "commit", "tns": 14301066, "proc": 2, "dst": 0, "neuron": 3, "stamp": 2, "status": "ok", "wnj": 0, "wst": 0, "ww": 0}, {"kind": "send", "tns": 14302646, "proc": 2, "dst": 1, "neuron": 0, "stamp": 3, "status": "", "wnj": 0, "wst": 0, "ww": -3}, {"kind": "recv", "tns": 17621647, "proc": 2, "dst": 1, "neuron": 0, "stamp": 3, "status": "", "wnj": 0, "wst": 0, "ww": -3}, {"kind": "compute", "tns": 17629907, "proc": 1, "dst": 0, "neuron": 0, "stamp": 3, "status": "", "wnj": 0, "wst": 0, "ww": -3}, {"kind": "compute", "tns": 17633350, "proc": 1, "dst": 0, "neuron": 0, "stamp": 3, "status": "", "wnj": 0, "wst": 0, "ww": 2}, {"kind": "compute", "tns": 17636204, "proc": 1, "dst": 0, "neuron": 0, "stamp": 3, "status": "", "wnj": 0, "wst": 0, "ww": 2}], "guard": "2009", "latency": "2ms", "scenario": "cancel", "truth": [[0, 1], [1, 2], [2, 3]]}};
+
+const X0=90, X1=880;           // logical-time axis in px
+let trace=null, events=[], tEnd=1, playing=false, cursor=0, speed=4, raf=null, last=0;
+
+function neuronColor(w){ return w<0 ? 'var(--pink)' : 'var(--blue)'; }
+
+function laneY(P, proc){
+  // proc 0 = Pr0 (env) drawn as top rail; 1..P as lanes
+  const top=70, gap=(300-top-30)/Math.max(P,1);
+  return proc===0 ? 40 : top + (proc-0.5)*gap;
+}
+
+function stampX(stamp, maxStamp){
+  return X0 + (stamp/Math.max(maxStamp,1))*(X1-X0);
+}
+
+function buildStage(){
+  const P = trace.P;
+  const maxStamp = Math.max(1, ...events.map(e=>e.stamp));
+  const svg = document.getElementById('stage');
+  const H = 90 + P*70;
+  svg.setAttribute('viewBox', `0 0 940 ${H}`);
+  let s = '';
+  // time axis
+  s += `<text class="lbl" x="${X0}" y="24">logical time (spike stamp) →</text>`;
+  s += `<line x1="${X0}" y1="${H-30}" x2="${X1}" y2="${H-30}" stroke="var(--line)"/>`;
+  for(let t=0;t<=maxStamp;t++){
+    const x=stampX(t,maxStamp);
+    s += `<line x1="${x}" y1="${H-34}" x2="${x}" y2="${H-26}" stroke="var(--muted)"/>`;
+    s += `<text class="lbl" x="${x}" y="${H-12}" text-anchor="middle">${t}</text>`;
+  }
+  // lanes
+  const laneTop=70, gap=(H-30-laneTop)/P;
+  for(let p=1;p<=P;p++){
+    const y=laneTop+(p-1)*gap;
+    s += `<rect x="${X0}" y="${y}" width="${X1-X0}" height="${gap-10}" rx="8"
+           fill="${p%2?'var(--blue-dim)':'var(--purple-dim)'}" opacity="0.5"/>`;
+    s += `<text class="lbl-h" x="12" y="${y+ (gap-10)/2}">Pr${p}</text>`;
+  }
+  s += `<text class="lbl" x="12" y="44">Pr0 env</text>`;
+  s += `<g id="dyn"></g>`;
+  svg.innerHTML = s;
+  window._laneY = p => (p===0?40:laneTop+(p-1)*gap+(gap-10)/2);
+  window._stampX = st => stampX(st,maxStamp);
+}
+
+function render(){
+  const dyn = document.getElementById('dyn');
+  if(!dyn) return;
+  let s='';
+  const shown = events.slice(0, cursor);
+  // messages (send→recv pairs) as diagonals; draw persistent once sent
+  for(const e of shown){
+    const x=window._stampX(e.stamp);
+    if(e.kind==='send'){
+      const y0=window._laneY(e.proc), y1=window._laneY(e.dst);
+      const col = e.ww<0 ? 'var(--pink)' : 'var(--muted)';
+      s += `<path d="M${x} ${y0} C ${x+30} ${y0}, ${x-30} ${y1}, ${x} ${y1}"
+             fill="none" stroke="${col}" stroke-width="1.6" stroke-dasharray="5 4" opacity="0.8"/>`;
+    }
+  }
+  // spikes / computes / commits as dots
+  for(const e of shown){
+    const x=window._stampX(e.stamp), y=window._laneY(e.proc);
+    if(e.kind==='commit'){
+      const straggler = e.status==='straggler';
+      const r = straggler?9:6;
+      const col = straggler?'var(--red)':neuronColor(e.ww);
+      s += `<circle cx="${x}" cy="${y}" r="${r}" fill="${col}"
+             stroke="${straggler?'var(--red)':'none'}" stroke-width="${straggler?2:0}"/>`;
+      s += `<text class="lbl" x="${x}" y="${y-r-5}" text-anchor="middle"
+             fill="${straggler?'var(--red)':'var(--muted)'}">N${e.neuron}@${e.stamp}</text>`;
+      if(straggler){
+        s += `<text class="lbl" x="${x}" y="${y+r+16}" text-anchor="middle"
+               fill="var(--red)">straggler</text>`;
+      }
+    } else if(e.kind==='compute'){
+      s += `<circle cx="${x}" cy="${y}" r="3" fill="var(--amber)" opacity="0.7"/>`;
+    }
+  }
+  dyn.innerHTML = s;
+
+  // clock + log
+  const tns = cursor>0 ? events[cursor-1].tns : 0;
+  document.getElementById('clock').textContent = 't = '+(tns/1e6).toFixed(3)+' ms  ·  event '+cursor+'/'+events.length;
+  const log = document.getElementById('log');
+  log.innerHTML = shown.slice(-9).map(e=>{
+    const t=(e.tns/1e6).toFixed(3).padStart(8);
+    let cls='row-'+(e.status==='straggler'?'straggler':e.kind);
+    let msg;
+    if(e.kind==='send') msg=`Pr${e.proc} → Pr${e.dst}  send   N${e.neuron}@${e.stamp} (w=${e.ww>0?'+':''}${e.ww})`;
+    else if(e.kind==='recv') msg=`Pr${e.proc} → Pr${e.dst}  recv   N${e.neuron}@${e.stamp}`;
+    else if(e.kind==='compute') msg=`Pr${e.proc}       compute N${e.neuron}@${e.stamp}`;
+    else if(e.kind==='commit'){
+      msg = e.status==='straggler'
+        ? `Pr${e.proc}       COMMIT N${e.neuron}@${e.stamp}  ⟵ STRAGGLER: N${e.wnj}@${e.wst} (w=${e.ww}) still in flight`
+        : `Pr${e.proc}       commit N${e.neuron}@${e.stamp}  (sound)`;
+    }
+    return `<span class="${cls}">${t} ms  ${msg}</span>`;
+  }).join('\n');
+
+  document.getElementById('scrub').value = cursor;
+}
+
+function step(ts){
+  if(!playing){ return; }
+  if(!last) last=ts;
+  const dt=(ts-last)*speed; last=ts;
+  // advance cursor by wall-clock: map elapsed to event timeline
+  if(cursor<events.length){
+    const targetT = (events[Math.min(cursor,events.length-1)].tns);
+    // simple: advance one event per ~120ms/speed
+    _acc += dt;
+    if(_acc > 120){ cursor++; _acc=0; render(); }
+    raf=requestAnimationFrame(step);
+  } else { playing=false; document.getElementById('play').textContent='▶ play'; }
+}
+let _acc=0;
+
+function togglePlay(){
+  if(!trace) return;
+  playing=!playing;
+  document.getElementById('play').textContent = playing?'❚❚ pause':'▶ play';
+  if(playing){ last=0; _acc=0; if(cursor>=events.length) cursor=0; raf=requestAnimationFrame(step); }
+}
+function restart(){ cursor=0; playing=false; document.getElementById('play').textContent='▶ play'; render(); }
+
+document.getElementById('scrub').addEventListener('input', e=>{
+  cursor=+e.target.value; playing=false;
+  document.getElementById('play').textContent='▶ play'; render();
+});
+
+function loadTrace(obj){
+  trace=obj;
+  events = obj.events.slice().sort((a,b)=>a.tns-b.tns);
+  cursor=0; playing=false;
+  document.getElementById('scrub').max=events.length;
+  document.getElementById('meta').textContent =
+    `${obj.scenario} · guard ${obj.guard} · P=${obj.P} · latency ${obj.latency} · truth ${JSON.stringify(obj.truth)}`;
+  const straggler = events.some(e=>e.status==='straggler');
+  document.getElementById('verdict').innerHTML = straggler
+    ? '<span style="color:var(--red)">✗ spurious spike committed</span>'
+    : '<span style="color:var(--green)">✓ sound</span>';
+  document.getElementById('s2006').classList.toggle('active', obj.guard==='2006');
+  document.getElementById('s2009').classList.toggle('active', obj.guard==='2009');
+  buildStage(); render();
+}
+function loadSample(k){ loadTrace(JSON.parse(JSON.stringify(SAMPLES[k]))); }
+
+document.getElementById('file').addEventListener('change', ev=>{
+  const f=ev.target.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=()=>{ try{ loadTrace(JSON.parse(r.result)); }catch(e){ alert('bad JSON: '+e); } };
+  r.readAsText(f);
+});
+
+loadSample('2006');
+</script>
+</body>
+</html>
