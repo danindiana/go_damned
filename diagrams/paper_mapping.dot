@@ -1,0 +1,53 @@
+digraph paper_mapping {
+  rankdir=LR
+  bgcolor="#0d1117"
+  node [fillcolor="#161b22" style=filled fontcolor="#c9d1d9" fontname="Courier" shape=box]
+  edge [color="#30363d" fontcolor="#8b949e" style=""]
+
+  subgraph cluster_paper {
+    label="DAMNED 2006/2009 Paper Concepts"
+    labelfontcolor="#c9d1d9"
+    style=filled
+    fillcolor="#0d1117"
+    color="#30363d"
+
+    processor [label="Processor Pr_p"]
+    cmc [label="CMC thread\n(Reception + Emission)"]
+    cpc [label="CPC thread\n(Computation)"]
+    ec_thread [label="EC thread\n(per computation)"]
+    mpi [label="MPI message\nBetween Pr_p, Pr_m"]
+    fifo [label="Per-channel FIFO\n(MPI queue)"]
+    env_proc [label="Pr0\n(environment)"]
+    lbts [label="LBTS\nLower bound on\nfuture emissions"]
+    null_msg [label="Null message\n(CMB discipline)"]
+  }
+
+  subgraph cluster_go {
+    label="Go Implementation"
+    labelfontcolor="#c9d1d9"
+    style=filled
+    fillcolor="#0d1117"
+    color="#30363d"
+
+    goroutine [label="goroutine\nrunning processorLoop()"]
+    select_loop [label="select loop\nCMC + CPC fused"]
+    ec_go [label="goroutine (per computation)\nspawned by processorLoop"]
+    channel [label="Go channel\nBetween goroutines"]
+    inbox [label="inbox[p] chan Message\nFIFO by Go guarantee"]
+    env_loop [label="goroutine\nenvironmentLoop()"]
+    bound_val [label="Message.Bnd\nAdvertised LBTS"]
+    broadcast [label="Null message loop\nBroadcast bound changes"]
+  }
+
+  processor -> goroutine [label="maps to" color="#79c0ff"]
+  cmc -> select_loop [label="→" color="#79c0ff"]
+  cpc -> select_loop [label="→" color="#79c0ff"]
+  ec_thread -> ec_go [label="→" color="#79c0ff"]
+  mpi -> channel [label="→" color="#79c0ff"]
+  fifo -> inbox [label="→" color="#79c0ff"]
+  env_proc -> env_loop [label="→" color="#79c0ff"]
+  lbts -> bound_val [label="→" color="#79c0ff"]
+  null_msg -> broadcast [label="→" color="#79c0ff"]
+
+  note [label="Key insight: Go channels are FIFO (load-bearing assumption)\nNull messages (CMB) implement the Chandy-Misra-Bryant discipline\nto prevent early emission before all peer lower-bounds have passed event timestamp" fillcolor="#2d333b" fontcolor="#8b949e"]
+}

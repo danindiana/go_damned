@@ -1,0 +1,62 @@
+{
+  "P": 2,
+  "events": [
+    {
+      "kind": "commit",
+      "proc": 2,
+      "neuron": 3,
+      "stamp": 2,
+      "status": "ok",
+      "wnj": 0,
+      "wst": 0,
+      "ww": 0
+    },
+    {
+      "kind": "commit",
+      "proc": 1,
+      "neuron": 1,
+      "stamp": 0,
+      "status": "ok",
+      "wnj": 0,
+      "wst": 0,
+      "ww": 0
+    },
+    {
+      "kind": "commit",
+      "proc": 1,
+      "neuron": 2,
+      "stamp": 1,
+      "status": "ok",
+      "wnj": 0,
+      "wst": 0,
+      "ww": 0
+    },
+    {
+      "kind": "commit",
+      "proc": 1,
+      "neuron": 0,
+      "stamp": 3,
+      "status": "straggler",
+      "wnj": 0,
+      "wst": 3,
+      "ww": -3
+    }
+  ],
+  "guard": "2006",
+  "latency": "2ms",
+  "scenario": "cancel",
+  "truth": [
+    [
+      0,
+      1
+    ],
+    [
+      1,
+      2
+    ],
+    [
+      2,
+      3
+    ]
+  ]
+}

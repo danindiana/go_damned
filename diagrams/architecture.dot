@@ -1,0 +1,75 @@
+digraph architecture {
+  rankdir=TB
+  bgcolor="#0d1117"
+  node [fillcolor="#161b22" style=filled fontcolor="#c9d1d9" fontname="Courier" shape=box]
+  edge [color="#30363d" fontcolor="#8b949e"]
+
+  subgraph cluster_env {
+    label="Environment (Pr0)"
+    labelfontcolor="#c9d1d9"
+    style=filled
+    fillcolor="#0d1117"
+    color="#30363d"
+
+    env [label="Pr0\nenvironmentLoop()\nStimulus injection\nTermination detection" fillcolor="#1f6feb"]
+  }
+
+  subgraph cluster_procs {
+    label="Compute Processors (Pr1..PrP)"
+    labelfontcolor="#c9d1d9"
+    style=filled
+    fillcolor="#0d1117"
+    color="#30363d"
+
+    pr1 [label="Pr1\nprocessorLoop()\nCMC + CPC\nselect: inbox/results/tick"]
+    pr2 [label="Pr2\nprocessorLoop()\nCMC + CPC\nselect: inbox/results/tick"]
+    prp [label="PrP\nprocessorLoop()\nCMC + CPC\nselect: inbox/results/tick"]
+  }
+
+  subgraph cluster_wire {
+    label="Wire Forwarding (FIFO + Latency)"
+    labelfontcolor="#c9d1d9"
+    style=filled
+    fillcolor="#0d1117"
+    color="#30363d"
+
+    wire1 [label="wireLoop(1)\ndelay + order" fillcolor="#238636"]
+    wire2 [label="wireLoop(2)\ndelay + order" fillcolor="#238636"]
+    wirep [label="wireLoop(P)\ndelay + order" fillcolor="#238636"]
+  }
+
+  subgraph cluster_ec {
+    label="EC Threads (spawned per computation)"
+    labelfontcolor="#c9d1d9"
+    style=filled
+    fillcolor="#0d1117"
+    color="#30363d"
+
+    ec [label="EC\ncomputeNeuron()\nIntegrate impact\nForecast spike"]
+  }
+
+  # Channels
+  env -> wire1 [label="send(Dst=1)\nmessage{Evs, Bnd}" fontcolor="#79c0ff"]
+  env -> wire2 [label="send(Dst=2)\nmessage{Evs, Bnd}" fontcolor="#79c0ff"]
+  env -> wirep [label="send(Dst=P)\nmessage{Evs, Bnd}" fontcolor="#79c0ff"]
+
+  wire1 -> pr1 [label="inbox[1]" fontcolor="#79c0ff"]
+  wire2 -> pr2 [label="inbox[2]" fontcolor="#79c0ff"]
+  wirep -> prp [label="inbox[P]" fontcolor="#79c0ff"]
+
+  pr1 -> ec [label="spawn EC\nCMEvent" fontcolor="#79c0ff"]
+  pr1 -> wire1 [label="send() to\npeers/env" fontcolor="#79c0ff"]
+  pr1 -> env [label="toEnv\noutput spike" fontcolor="#79c0ff"]
+
+  pr2 -> ec [label="spawn EC\nCMEvent" fontcolor="#79c0ff"]
+  pr2 -> wire2 [label="send() to\npeers/env" fontcolor="#79c0ff"]
+  pr2 -> env [label="toEnv\noutput spike" fontcolor="#79c0ff"]
+
+  prp -> ec [label="spawn EC\nCMEvent" fontcolor="#79c0ff"]
+  prp -> wirep [label="send() to\npeers/env" fontcolor="#79c0ff"]
+  prp -> env [label="toEnv\noutput spike" fontcolor="#79c0ff"]
+
+  ec -> pr1 [label="results channel\necResult{fired, CP, CM}" fontcolor="#79c0ff"]
+
+  legend [label="One goroutine per: Pr0, Pr1..PrP, wireLoop(1..P), EC (per computation)\nAll communication via Go channels (FIFO guaranteed)" fillcolor="#2d333b" fontcolor="#8b949e"]
+}

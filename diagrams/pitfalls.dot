@@ -1,0 +1,48 @@
+digraph pitfalls {
+  rankdir=TB
+  bgcolor="#0d1117"
+  node [fillcolor="#161b22" style=filled fontcolor="#c9d1d9" fontname="Courier" shape=box]
+  edge [color="#30363d" fontcolor="#8b949e"]
+
+  title [label="Delayed-Firing / Straggler Cancellation Problem" fillcolor="#1f6feb"]
+
+  subgraph cluster_network {
+    label="Network Topology"
+    labelfontcolor="#c9d1d9"
+    style=filled
+    fillcolor="#0d1117"
+    color="#30363d"
+
+    n1 [label="N1\n(Proc 1)\ntheta=1" fillcolor="#238636"]
+    n2 [label="N2\n(Proc 1)\ntheta=1" fillcolor="#238636"]
+    n0 [label="N0\n(Proc 1)\ntheta=4" fillcolor="#238636"]
+    n3 [label="N3\n(Proc 2)\ntheta=1" fillcolor="#238636"]
+
+    n1 -> n0 [label="+2 (exc)\ndelay=3\nimpact @ t=3"]
+    n2 -> n0 [label="+2 (exc)\ndelay=2\nimpact @ t=3"]
+    n3 -> n0 [label="-3 (inhib)\ndelay=1\nimpact @ t=3"]
+  }
+
+  subgraph cluster_scenario {
+    label="Race Condition @ t=3"
+    labelfontcolor="#c9d1d9"
+    style=filled
+    fillcolor="#0d1117"
+    color="#30363d"
+
+    timeline [label="Timeline (wall-clock varies due to latency/scheduling):\n\nStimulus injects: N1@t=0, N2@t=1, N3@t=2\n  ↓\nAll three spike sources fire\n  ↓\nThree CM events traverse (possibly different) processors & wires:\n  • CM(N1→N0, impact@t=3, w=+2) via local or Pr1→Pr1\n  • CM(N2→N0, impact@t=3, w=+2) via local or Pr1→Pr1\n  • CM(N3→N0, impact@t=3, w=-3) via wire from Pr2 to Pr1 [LATENCY!]\n  ↓\nRace: If Pr1 processes the two +2 impacts first (before the -3 arrives),\nit may prematurely commit N0@t=3. But -3 is still in flight!\n  ↓\nResult of COMMITTING too early:\n  N0's potential: 2+2=4 ≥ theta=4 → FIRES\n  (But if -3 had arrived: 2+2-3=1 < 4 → never fires)\n  ↓\nGround truth (sequential): N0 NEVER FIRES\nStraggler guard (2006): N0 FIRES incorrectly\nCMB guard (2009): N0 never commits until Pr2's LBTS > t=3\n" fillcolor="#2d333b" fontcolor="#8b949e"]
+  }
+
+  subgraph cluster_fixes {
+    label="Solutions"
+    labelfontcolor="#c9d1d9"
+    style=filled
+    fillcolor="#0d1117"
+    color="#238636"
+
+    fix1 [label="2009 CMB Discipline:\n• Pr2 advertises LBTS (lower-bound-on-future-emissions)\n• While -3 is queued/in-flight, Pr2.LBTS ≤ t=3\n• Pr1 waits: clk[Pr2] must be > t=3 before emitting N0\n• Once Pr2 processes -3 and updates its bound, Pr1 can safely commit\nResult: Exact match to sequential ground truth."]
+  }
+
+  title -> timeline
+  timeline -> fix1
+}

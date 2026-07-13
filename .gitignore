@@ -1,0 +1,23 @@
+# Binaries
+damned
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Test binaries
+*.test
+
+# Dependencies
+vendor/
+
+# IDE/editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Go
+go.sum

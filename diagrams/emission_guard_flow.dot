@@ -1,0 +1,55 @@
+digraph emission_guard_flow {
+  rankdir=TB
+  bgcolor="#0d1117"
+  node [fillcolor="#161b22" style=filled fontcolor="#c9d1d9" fontname="Courier" shape=box]
+  edge [color="#30363d" fontcolor="#8b949e"]
+
+  start [label="Top CP event:\nNi fires at timestamp St" fillcolor="#1f6feb"]
+
+  subgraph cluster_2009 {
+    label="2009 Guard (Correct, CMB discipline)"
+    labelfontcolor="#c9d1d9"
+    style=filled
+    fillcolor="#0d1117"
+    color="#238636"
+
+    start -> check_local [label="check"]
+    check_local [label="Is neuron Ni locally clear?\n(no pending CM event on Ni ≤ St)"]
+    check_local -> fail_local [label="NO"]
+    fail_local [label="BLOCK\nWait for local queue to clear" fillcolor="#da3633"]
+    check_local -> check_peers [label="YES"]
+    check_peers [label="For every peer m:\nIs clk[m] > St?\n(peer bound strictly past St)"]
+    check_peers -> fail_peers [label="NO (stale peer bound)"]
+    fail_peers [label="BLOCK\nWait for peer bounds to advance" fillcolor="#da3633"]
+    check_peers -> ok_2009 [label="YES (all clear)"]
+    ok_2009 [label="EMIT & COMMIT\nNo straggler can land on Ni ≤ St" fillcolor="#238636"]
+  }
+
+  subgraph cluster_2006 {
+    label="2006 Guard (Unsound, has straggler hole)"
+    labelfontcolor="#c9d1d9"
+    style=filled
+    fillcolor="#0d1117"
+    color="#da3633"
+
+    start -> branch_2006 [label="also check (buggy)"]
+    branch_2006 [label="Disjunction of 4 branches:\n1. St == et? (same as last emission)"]
+    branch_2006 -> opt1 [label="branch"]
+    opt1 [label="Crt? (certified)"]
+    opt1 -> opt1_yes [label="YES"]
+    opt1 -> opt2 [label="NO"]
+    opt1_yes [label="EMIT" fillcolor="#238636"]
+    opt2 [label="localClear(Ni, St)?\n(local queue clear)"]
+    opt2 -> opt2_yes [label="YES"]
+    opt2 -> opt2_no [label="NO"]
+    opt2_yes [label="EMIT (BUG!)\n... but peers may have stragglers!" fillcolor="#da3633"]
+    opt2_no [label="BLOCK"]
+
+    straggler [label="STRAGGLER HOLE:\nPeer Pr_m may have an inhibitory\nimpact on Ni arriving at St,\nbut Pr_p never knew about it\n(bound not yet advanced)." fillcolor="#da3633"]
+    opt2_yes -> straggler [style="dashed" fontcolor="#da3633"]
+  }
+
+  check_peers -> straggler [label="Why this case breaks" style="dashed" fontcolor="#da3633"]
+
+  legend [label="2009: CMB ensures every peer's LBTS > St before emit\n2006: Missing the peer-bound check in the disjunction → stragglers not ruled out" fillcolor="#2d333b" fontcolor="#8b949e"]
+}
