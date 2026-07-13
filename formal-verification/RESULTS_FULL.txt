@@ -1,0 +1,19 @@
+DamnedFull2.tla — full P-processor model, exhaustive results
+============================================================
+
+Config A: P=2, MaxT=2, DMax=2, MaxChan=2  (exhaustive both)
+  FIX=FALSE (2006 guard):
+    Error: Invariant Exactness is violated.
+    3950 states generated, 1517 distinct states found, 347 states left on queue.
+    The depth of the complete state graph search is 14.
+  FIX=TRUE (2009 discipline):
+    Progress(14) at 2026-07-09 14:04:08: 63,649 states generated (63,649 s/min), 25,866 distinct states found (25,866 ds/min), 7,429 states left on queue.
+    Model checking completed. No error has been found.
+    740431 states generated, 197246 distinct states found, 0 states left on queue.
+    The depth of the complete state graph search is 45.
+
+Config B: P=3, MaxT=2  (2006 exhaustive-to-violation; 2009 bounded)
+  FIX=FALSE (2006 guard):
+    Error: Invariant Exactness is violated.
+    35382 states generated, 9676 distinct states found, 2084 states left on queue.
+  FIX=TRUE: no violation found in >10M states (search not exhausted at this size)
