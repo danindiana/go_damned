@@ -1,0 +1,33 @@
+### damned_ref.py output
+
+=== Cancellation counterexample (remote inhibition, should suppress the spike) ===
+  ground-truth sequential EDS: 3 spikes -> [(0, 1), (1, 2), (2, 3)]
+  DAMNED-2006 (fair sched)  : 4 spikes, match=False, timeouts=2
+      distributed: [(0, 1), (1, 2), (2, 3), (3, 0)]
+  adversarial interleavings : 150/150 diverged from ground truth
+      first divergent seed=0
+      spurious spikes (committed but not real): [(3, 0)]
+      missing spikes  (real but not committed): []
+
+=== Figure 1 (mis-timed spike under stale clocks) ===
+  ground-truth sequential EDS: 5 spikes -> [(0, 1), (1, 2), (3, 0), (3, 4), (4, 3)]
+  DAMNED-2006 (fair sched)  : 5 spikes, match=True, timeouts=6
+  adversarial interleavings : 0/150 diverged from ground truth
+
+=== Random SNN, 15 neurons, 3 processors ===
+  ground-truth sequential EDS: 195 spikes -> [(0, 1), (0, 13), (1, 2), (1, 4), (1, 5), (1, 10), (2, 9), (2, 11), (3, 3), (3, 6), (3, 11), (4, 6)]...
+  DAMNED-2006 (fair sched)  : 228 spikes, match=False, timeouts=29
+      distributed: [(0, 1), (0, 13), (1, 2), (1, 4), (1, 5), (1, 10), (2, 9), (2, 11), (3, 3), (3, 6), (3, 11), (3, 13)]
+  adversarial interleavings : 120/120 diverged from ground truth
+      first divergent seed=0
+      spurious spikes (committed but not real): [(3, 13), (4, 2), (4, 5), (4, 9), (5, 7), (6, 3), (6, 11), (7, 6)]
+      missing spikes  (real but not committed): [(6, 13), (7, 2), (7, 13), (8, 2), (8, 5), (8, 9), (8, 13), (8, 14)]
+
+### TLC Damned.tla (2006 guard)
+Error: Invariant Exactness is violated.
+7 states generated, 6 distinct states found, 1 states left on queue.
+The depth of the complete state graph search is 4.
+
+### TLC DamnedFixed.tla (2009 discipline)
+Model checking completed. No error has been found.
+5 states generated, 4 distinct states found, 0 states left on queue.
