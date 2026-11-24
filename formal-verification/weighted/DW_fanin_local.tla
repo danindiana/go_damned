@@ -6,8 +6,8 @@
 (* Differences from DamnedFull2.tla, and why:                               *)
 (*  - Neurons have integer potentials, thresholds and signed synaptic       *)
 (*    weights, so integrating events in the wrong order changes the result. *)
-(*  - Events are taken in time order, inhibitory before excitatory at equal *)
-(*    time, exactly as Damned.go's cmQueue.pop does.                        *)
+(*  - Events are taken in order of time, inhibitory before excitatory, then *)
+(*    source neuron, exactly as Damned.go's cmQueue.pop does.               *)
 (*  - The invariant compares the committed spikes with the correct spike    *)
 (*    train (Truth, computed by gen.py with the same rules as sequentialEDS)*)
 (*    instead of checking for pending events at commit time.                *)
@@ -60,8 +60,12 @@ BoundOf(p, cmS, runS, cpS) ==
 
 MyBound(p) == BoundOf(p, cm[p], running[p], cp[p])
 
-(* Events with the least (stamp, inhibitory-first) key. *)
-MinKey(S) == { e \in S : \A f \in S : e.st < f.st \/ (e.st = f.st /\ Exc(e) =< Exc(f)) }
+(* The event with the least (stamp, inhibitory first, source neuron) key, *)
+(* the same order as sequentialEDS and cmQueue.pop. Stimuli have source 0. *)
+Before(e, f) == \/ e.st < f.st
+                \/ e.st = f.st /\ Exc(e) < Exc(f)
+                \/ e.st = f.st /\ Exc(e) = Exc(f) /\ e.ni =< f.ni
+MinKey(S) == { e \in S : \A f \in S : Before(e, f) }
 
 CompAuth(p, st) ==
     /\ \A m \in Peers(p) : st < kb[p][m]

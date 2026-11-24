@@ -151,12 +151,23 @@ type ecResult struct {
 // Ground-truth sequential event-driven simulator
 // ---------------------------------------------------------------------------
 //
-// One global queue of impacts ordered by (time, inhibition-before-excitation).
-// This is the reference the distributed run must reproduce exactly.
+// One global queue of impacts ordered by (time, inhibition-before-excitation,
+// source neuron). This is the reference the distributed run must reproduce
+// exactly.
+//
+// Why the source neuron is part of the key: a neuron resets to 0 when it
+// fires, so two excitatory impacts at the same stamp do not commute. With +1
+// then +2 a threshold-2 neuron fires and keeps 0; with +2 then +1 it fires and
+// keeps 1, which can make it fire later. The 2009 paper orders inhibitory
+// before excitatory but leaves same-sign order open, so both the reference
+// and the engine (cmQueue.pop) break the tie by source neuron id, stimuli
+// (source -1) first. Under 2009L every impact at a stamp has arrived before
+// the first of them is integrated, so the engine can always honour this order.
 
 type impact struct {
 	t   int
 	exc int // 0 for inhibitory (sorts first), 1 for excitatory
+	src int // source neuron; -1 for a stimulus
 	seq int
 	nid int
 	w   int
@@ -170,7 +181,7 @@ func sequentialEDS(net *Network, stim []CMEvent, tMax int) [][2]int {
 		if e.W < 0 {
 			ex = 0
 		}
-		q = append(q, impact{t: e.St, exc: ex, seq: seq, nid: e.Nj, w: e.W})
+		q = append(q, impact{t: e.St, exc: ex, src: e.Ni, seq: seq, nid: e.Nj, w: e.W})
 		seq++
 	}
 	less := func(a, b impact) bool {
@@ -179,6 +190,9 @@ func sequentialEDS(net *Network, stim []CMEvent, tMax int) [][2]int {
 		}
 		if a.exc != b.exc {
 			return a.exc < b.exc
+		}
+		if a.src != b.src {
+			return a.src < b.src
 		}
 		return a.seq < b.seq
 	}
@@ -209,7 +223,7 @@ func sequentialEDS(net *Network, stim []CMEvent, tMax int) [][2]int {
 				if s.W < 0 {
 					ex = 0
 				}
-				q = append(q, impact{t: e.t + s.D, exc: ex, seq: seq, nid: s.Post, w: s.W})
+				q = append(q, impact{t: e.t + s.D, exc: ex, src: e.nid, seq: seq, nid: s.Post, w: s.W})
 				seq++
 			}
 		}
@@ -260,7 +274,8 @@ func (q *cmQueue) pop() CMEvent {
 		if b.W < 0 {
 			bex = 0
 		}
-		if a.St < b.St || (a.St == b.St && aex < bex) {
+		// (stamp, inhibitory first, source neuron): the same key as sequentialEDS.
+		if a.St < b.St || (a.St == b.St && (aex < bex || (aex == bex && a.Ni < b.Ni))) {
 			mi = i
 		}
 	}

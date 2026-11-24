@@ -1,12 +1,12 @@
 Picked up JAVA_TOOL_OPTIONS: -Djavax.net.ssl.trustStore=/etc/ssl/certs/java/cacerts -Djavax.net.ssl.trustStoreType=JKS -Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=37857 -Dhttp.nonProxyHosts=localhost|127.0.0.1|::1|127.*|0.*|::|169.254.*|api.anthropic.com|api-staging.anthropic.com|api-pr-preview.anthropic.com|mcp-proxy.anthropic.com|mcp-proxy-staging.anthropic.com|registry.npmjs.org|jsr.io|npm.jsr.io|pypi.org|files.pythonhosted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=
 TLC2 Version 2026.11.19.180144 (rev: bc1b506)
-Running breadth-first search Model-Checking with fp 87 and seed -3321403432421001887 with 1 worker on 2 cores with 1328MB heap and 64MB offheap memory [pid: 3247] (Linux 6.18.44-fc-v819 amd64, Ubuntu 21.0.12.1 64bit, MSBDiskFPSet, DiskStateQueue).
+Running breadth-first search Model-Checking with fp 2 and seed -7650616349644137509 with 1 worker on 2 cores with 1328MB heap and 64MB offheap memory [pid: 15088] (Linux 6.18.44-fc-v819 amd64, Ubuntu 21.0.12.1 64bit, MSBDiskFPSet, DiskStateQueue).
 Parsing file /home/claude/go_damned/formal-verification/weighted/DW_mixed.tla
-Parsing file /tmp/tlc-8402196365539983837/Integers.tla (jar:file:/tmp/claude-0/-home-claude/e0d5d864-24f2-5192-9233-62088837062e/scratchpad/tla/tla2tools.jar!/tla2sany/StandardModules/Integers.tla)
-Parsing file /tmp/tlc-8402196365539983837/FiniteSets.tla (jar:file:/tmp/claude-0/-home-claude/e0d5d864-24f2-5192-9233-62088837062e/scratchpad/tla/tla2tools.jar!/tla2sany/StandardModules/FiniteSets.tla)
-Parsing file /tmp/tlc-8402196365539983837/Sequences.tla (jar:file:/tmp/claude-0/-home-claude/e0d5d864-24f2-5192-9233-62088837062e/scratchpad/tla/tla2tools.jar!/tla2sany/StandardModules/Sequences.tla)
-Parsing file /tmp/tlc-8402196365539983837/TLC.tla (jar:file:/tmp/claude-0/-home-claude/e0d5d864-24f2-5192-9233-62088837062e/scratchpad/tla/tla2tools.jar!/tla2sany/StandardModules/TLC.tla)
-Parsing file /tmp/tlc-8402196365539983837/Naturals.tla (jar:file:/tmp/claude-0/-home-claude/e0d5d864-24f2-5192-9233-62088837062e/scratchpad/tla/tla2tools.jar!/tla2sany/StandardModules/Naturals.tla)
+Parsing file /tmp/tlc-5893214235092149966/Integers.tla (jar:file:/tmp/claude-0/-home-claude/e0d5d864-24f2-5192-9233-62088837062e/scratchpad/tla/tla2tools.jar!/tla2sany/StandardModules/Integers.tla)
+Parsing file /tmp/tlc-5893214235092149966/FiniteSets.tla (jar:file:/tmp/claude-0/-home-claude/e0d5d864-24f2-5192-9233-62088837062e/scratchpad/tla/tla2tools.jar!/tla2sany/StandardModules/FiniteSets.tla)
+Parsing file /tmp/tlc-5893214235092149966/Sequences.tla (jar:file:/tmp/claude-0/-home-claude/e0d5d864-24f2-5192-9233-62088837062e/scratchpad/tla/tla2tools.jar!/tla2sany/StandardModules/Sequences.tla)
+Parsing file /tmp/tlc-5893214235092149966/TLC.tla (jar:file:/tmp/claude-0/-home-claude/e0d5d864-24f2-5192-9233-62088837062e/scratchpad/tla/tla2tools.jar!/tla2sany/StandardModules/TLC.tla)
+Parsing file /tmp/tlc-5893214235092149966/Naturals.tla (jar:file:/tmp/claude-0/-home-claude/e0d5d864-24f2-5192-9233-62088837062e/scratchpad/tla/tla2tools.jar!/tla2sany/StandardModules/Naturals.tla)
 Semantic processing of module Naturals
 Semantic processing of module Integers
 Semantic processing of module Sequences
@@ -14,9 +14,9 @@ Semantic processing of module FiniteSets
 Semantic processing of module TLC
 Semantic processing of module DW_mixed
 Linting of module DW_mixed
-Starting... (2026-11-24 14:53:21)
+Starting... (2026-11-24 15:07:21)
 Computing initial states...
-Finished computing initial states: 1 distinct state generated at 2026-11-24 14:53:22.
+Finished computing initial states: 1 distinct state generated at 2026-11-24 15:07:22.
 Error: Invariant NoWrongSpike is violated.
 Error: The behavior up to this point is:
 State 1: <Initial predicate>
@@ -32,7 +32,7 @@ State 1: <Initial predicate>
 /\ kb = <<<<0, 0>>, <<0, 0>>>>
 /\ firedAt = <<-1, -1, -1, -1, -1>>
 
-State 2: <NullSend(2,1) line 141, col 5 to line 146, col 65 of module DW_mixed>
+State 2: <NullSend(2,1) line 145, col 5 to line 150, col 65 of module DW_mixed>
 /\ sentB = <<<<-1, -1>>, <<1, -1>>>>
 /\ running = <<{}, {}>>
 /\ cm = << {[w |-> 1, nj |-> 2, ni |-> 0, st |-> 0]},
@@ -45,7 +45,7 @@ State 2: <NullSend(2,1) line 141, col 5 to line 146, col 65 of module DW_mixed>
 /\ kb = <<<<0, 0>>, <<0, 0>>>>
 /\ firedAt = <<-1, -1, -1, -1, -1>>
 
-State 3: <Receive(1,2) line 150, col 5 to line 156, col 64 of module DW_mixed>
+State 3: <Receive(1,2) line 154, col 5 to line 160, col 64 of module DW_mixed>
 /\ sentB = <<<<-1, -1>>, <<1, -1>>>>
 /\ running = <<{}, {}>>
 /\ cm = << {[w |-> 1, nj |-> 2, ni |-> 0, st |-> 0]},
@@ -58,7 +58,7 @@ State 3: <Receive(1,2) line 150, col 5 to line 156, col 64 of module DW_mixed>
 /\ kb = <<<<0, 1>>, <<0, 0>>>>
 /\ firedAt = <<-1, -1, -1, -1, -1>>
 
-State 4: <Start(1) line 92, col 5 to line 99, col 65 of module DW_mixed>
+State 4: <Start(1) line 96, col 5 to line 103, col 65 of module DW_mixed>
 /\ sentB = <<<<-1, -1>>, <<1, -1>>>>
 /\ running = <<{[w |-> 1, nj |-> 2, ni |-> 0, st |-> 0]}, {}>>
 /\ cm = << {},
@@ -71,7 +71,7 @@ State 4: <Start(1) line 92, col 5 to line 99, col 65 of module DW_mixed>
 /\ kb = <<<<0, 1>>, <<0, 0>>>>
 /\ firedAt = <<-1, -1, -1, -1, -1>>
 
-State 5: <Finish(1) line 103, col 5 to line 112, col 51 of module DW_mixed>
+State 5: <Finish(1) line 107, col 5 to line 116, col 51 of module DW_mixed>
 /\ sentB = <<<<-1, -1>>, <<1, -1>>>>
 /\ running = <<{}, {}>>
 /\ cm = << {},
@@ -84,7 +84,7 @@ State 5: <Finish(1) line 103, col 5 to line 112, col 51 of module DW_mixed>
 /\ kb = <<<<0, 1>>, <<0, 0>>>>
 /\ firedAt = <<-1, 1, -1, -1, -1>>
 
-State 6: <Emit(1) line 116, col 5 to line 137, col 46 of module DW_mixed>
+State 6: <Emit(1) line 120, col 5 to line 141, col 46 of module DW_mixed>
 /\ sentB = <<<<-1, 2>>, <<1, -1>>>>
 /\ running = <<{}, {}>>
 /\ cm = << {[w |-> -3, nj |-> 1, ni |-> 2, st |-> 1]},
@@ -98,7 +98,7 @@ State 6: <Emit(1) line 116, col 5 to line 137, col 46 of module DW_mixed>
 /\ kb = <<<<0, 1>>, <<0, 0>>>>
 /\ firedAt = <<-1, 1, -1, -1, -1>>
 
-State 7: <Receive(2,1) line 150, col 5 to line 156, col 64 of module DW_mixed>
+State 7: <Receive(2,1) line 154, col 5 to line 160, col 64 of module DW_mixed>
 /\ sentB = <<<<-1, 2>>, <<1, -1>>>>
 /\ running = <<{}, {}>>
 /\ cm = << {[w |-> -3, nj |-> 1, ni |-> 2, st |-> 1]},
@@ -112,7 +112,7 @@ State 7: <Receive(2,1) line 150, col 5 to line 156, col 64 of module DW_mixed>
 /\ kb = <<<<0, 1>>, <<2, 0>>>>
 /\ firedAt = <<-1, 1, -1, -1, -1>>
 
-State 8: <Start(2) line 92, col 5 to line 99, col 65 of module DW_mixed>
+State 8: <Start(2) line 96, col 5 to line 103, col 65 of module DW_mixed>
 /\ sentB = <<<<-1, 2>>, <<1, -1>>>>
 /\ running = <<{}, {[w |-> 1, nj |-> 3, ni |-> 0, st |-> 0]}>>
 /\ cm = << {[w |-> -3, nj |-> 1, ni |-> 2, st |-> 1]},
@@ -125,7 +125,7 @@ State 8: <Start(2) line 92, col 5 to line 99, col 65 of module DW_mixed>
 /\ kb = <<<<0, 1>>, <<2, 0>>>>
 /\ firedAt = <<-1, 1, -1, -1, -1>>
 
-State 9: <Start(2) line 92, col 5 to line 99, col 65 of module DW_mixed>
+State 9: <Start(2) line 96, col 5 to line 103, col 65 of module DW_mixed>
 /\ sentB = <<<<-1, 2>>, <<1, -1>>>>
 /\ running = << {},
    { [w |-> 1, nj |-> 3, ni |-> 0, st |-> 0],
@@ -139,7 +139,7 @@ State 9: <Start(2) line 92, col 5 to line 99, col 65 of module DW_mixed>
 /\ kb = <<<<0, 1>>, <<2, 0>>>>
 /\ firedAt = <<-1, 1, -1, -1, -1>>
 
-State 10: <Start(2) line 92, col 5 to line 99, col 65 of module DW_mixed>
+State 10: <Start(2) line 96, col 5 to line 103, col 65 of module DW_mixed>
 /\ sentB = <<<<-1, 2>>, <<1, -1>>>>
 /\ running = << {},
    { [w |-> 1, nj |-> 3, ni |-> 0, st |-> 0],
@@ -153,7 +153,7 @@ State 10: <Start(2) line 92, col 5 to line 99, col 65 of module DW_mixed>
 /\ kb = <<<<0, 1>>, <<2, 0>>>>
 /\ firedAt = <<-1, 1, -1, -1, -1>>
 
-State 11: <Finish(2) line 103, col 5 to line 112, col 51 of module DW_mixed>
+State 11: <Finish(2) line 107, col 5 to line 116, col 51 of module DW_mixed>
 /\ sentB = <<<<-1, 2>>, <<1, -1>>>>
 /\ running = << {},
    { [w |-> 1, nj |-> 3, ni |-> 0, st |-> 0],
@@ -166,7 +166,7 @@ State 11: <Finish(2) line 103, col 5 to line 112, col 51 of module DW_mixed>
 /\ kb = <<<<0, 1>>, <<2, 0>>>>
 /\ firedAt = <<-1, 1, -1, 2, -1>>
 
-State 12: <Emit(2) line 116, col 5 to line 137, col 46 of module DW_mixed>
+State 12: <Emit(2) line 120, col 5 to line 141, col 46 of module DW_mixed>
 /\ sentB = <<<<-1, 2>>, <<1, -1>>>>
 /\ running = << {},
    { [w |-> 1, nj |-> 3, ni |-> 0, st |-> 0],
@@ -181,4 +181,4 @@ State 12: <Emit(2) line 116, col 5 to line 137, col 46 of module DW_mixed>
 
 319 states generated, 151 distinct states found, 22 states left on queue.
 The depth of the complete state graph search is 12.
-Finished in 01s at (2026-11-24 14:53:22)
+Finished in 00s at (2026-11-24 15:07:22)

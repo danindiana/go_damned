@@ -76,3 +76,16 @@ func TestWordSizeConstantInN(t *testing.T) {
 		}
 	}
 }
+
+// TestEqualStampOrder2009L is the case the long random search found on
+// 2026-11-24 before the source-neuron tie-break: two excitatory impacts reach
+// N0 at t=3, and their order decides whether N0 keeps a leftover +1 after
+// firing, which makes it fire again at t=8.
+func TestEqualStampOrder2009L(t *testing.T) {
+	c := fcase{P: 3, Theta: []int{2, 1, 3, 1, 2}, Proc: []int{1, 3, 2, 3, 2},
+		Syn:  [][4]int{{4, 0, 2, 3}, {0, 2, 2, 2}, {2, 0, 1, 3}},
+		Stim: [][2]int{{0, 2}, {2, 0}, {4, 0}}, TMax: 8}
+	if bad, truth, got := diverges(c, "2009L", 500); bad {
+		t.Fatalf("2009L diverged: truth %v got %v", truth, got)
+	}
+}

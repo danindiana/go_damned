@@ -29,6 +29,7 @@ DAMNED (Mouraud, Puzenat and Paugam-Moisy) simulates spiking neural networks acr
 6. **Low latency exposes the defect; latency hides it.** With 1 ms of simulated link latency, `2009` passes `fanin-local` in 300 of 300 runs; with none it fails. Tightly coupled, low-latency interconnects (an on-chip mesh rather than an MPI cluster) are therefore the regime where this matters most.
 7. **A fixed-size spiking network computes an NC¹-complete function.** The `word` scenario tracks products in the symmetric group S5 (its word problem is NC¹-complete, by Barrington's theorem) with 364 neurons and 1,080 synapses at every word length, and depth 2n. Under `2009L` it returned the correct product in every run. Under `2009` it returned the wrong product in up to 44% of runs. Details: [`docs/WITNESS_REPORT.md`](docs/WITNESS_REPORT.md).
 8. **An accounting leak hung the engine on dense networks.** In-flight messages were decremented once per message but incremented once per event. Fixed.
+9. **Equal-time order was under-specified.** A neuron resets when it fires, so two excitatory impacts at the same stamp do not commute. The paper fixes only inhibitory-before-excitatory. Both the reference and the engine now break ties by source neuron; `2009L` guarantees every same-stamp impact has arrived before the first is integrated, so the engine can always honour that order ([verification report, section 2.1](docs/VERIFICATION-2009L.md#21-equal-time-order-a-gap-in-the-specification-now-closed)).
 
 ### Results, 2026-11-24
 
@@ -94,7 +95,7 @@ Failure counts under the unsound guards depend on goroutine scheduling and vary 
 
 In an event-driven SNN, an inhibitory spike with a short delay can cancel a spike that was already forecast. A distributed simulator must therefore never commit a spike until it is certain that no earlier-arriving impact can still change the outcome. An event that arrives after the decision it should have changed is a **straggler**.
 
-At equal timestamps, the sequential reference applies inhibitory impacts before excitatory ones.
+At equal timestamps, the sequential reference applies inhibitory impacts before excitatory ones, and impacts of the same sign in order of source neuron.
 
 ### The `cancel` scenario
 
@@ -218,7 +219,7 @@ The tests check that `2009L` matches the sequential reference and that the S5 ne
 
 ## Checking correctness
 
-1. **Sequential reference** (`sequentialEDS`): applies every impact in global order of time, then inhibition before excitation, then sequence. This defines the correct spike train.
+1. **Sequential reference** (`sequentialEDS`): applies every impact in global order of time, then inhibition before excitation, then source neuron (stimuli first). This defines the correct spike train.
 2. **Distributed runs**: many independent runs of the same scenario, each with its own goroutine interleaving.
 3. **Exactness**: each run's committed spike train must equal the reference. For `word`, the decoded group element is also checked against a direct group-theoretic computation.
 

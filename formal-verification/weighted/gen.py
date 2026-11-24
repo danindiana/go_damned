@@ -3,7 +3,7 @@
 
 Each scenario is a small spiking network. The generator computes its correct
 spike train with the same sequential semantics as sequentialEDS in Damned.go
-(time order; inhibitory before excitatory at equal time; fire when the
+(time order; inhibitory before excitatory at equal time, then source neuron; fire when the
 potential reaches threshold, reset to 0, at most one spike per neuron per
 stamp; stamps above TMax dropped) and writes it into the spec as Truth.
 
@@ -44,6 +44,16 @@ SCENARIOS = {
         stim=[(2, 2, 2), (1, 0, 2)],
         tmax=3,
     ),
+    # Found by the long random search: two excitatory impacts reach neuron 1 at
+    # t = 3 from different sources; their order decides whether it keeps a
+    # leftover after firing. Checks the source-neuron tie-break end to end.
+    "equal_stamp": dict(
+        P=3,
+        neurons={1: (2, 1), 2: (1, 3), 3: (3, 2), 4: (1, 3), 5: (2, 2)},
+        syn=[(5, 1, 2, 3), (1, 3, 2, 2), (3, 1, 1, 3)],
+        stim=[(1, 2, 2), (3, 0, 3), (5, 0, 2)],
+        tmax=8,
+    ),
     # Mixed: a local inhibitor and a remote inhibitor on two targets, plus a
     # local excitatory chain, over two processors.
     "mixed": dict(
@@ -62,17 +72,17 @@ def truth(sc):
         out[pre].append((post, w, d))
     q, seq = [], 0
     for n, t, w in sc["stim"]:
-        heapq.heappush(q, (t, 0 if w < 0 else 1, seq, n, w)); seq += 1
+        heapq.heappush(q, (t, 0 if w < 0 else 1, 0, seq, n, w)); seq += 1
     pot, fired_at, fired = {}, {}, []
     while q:
-        t, _, _, n, w = heapq.heappop(q)
+        t, _, src, _, n, w = heapq.heappop(q)
         if t > sc["tmax"]:
             continue
         pot[n] = pot.get(n, 0) + w
         if pot[n] >= sc["neurons"][n][0] and fired_at.get(n) != t + 1:
             fired.append((t, n)); fired_at[n] = t + 1; pot[n] = 0
             for post, w2, d in out[n]:
-                heapq.heappush(q, (t + d, 0 if w2 < 0 else 1, seq, post, w2)); seq += 1
+                heapq.heappush(q, (t + d, 0 if w2 < 0 else 1, n, seq, post, w2)); seq += 1
     return fired
 
 

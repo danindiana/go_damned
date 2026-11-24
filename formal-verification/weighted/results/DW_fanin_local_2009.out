@@ -1,12 +1,12 @@
 Picked up JAVA_TOOL_OPTIONS: -Djavax.net.ssl.trustStore=/etc/ssl/certs/java/cacerts -Djavax.net.ssl.trustStoreType=JKS -Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=37857 -Dhttp.nonProxyHosts=localhost|127.0.0.1|::1|127.*|0.*|::|169.254.*|api.anthropic.com|api-staging.anthropic.com|api-pr-preview.anthropic.com|mcp-proxy.anthropic.com|mcp-proxy-staging.anthropic.com|registry.npmjs.org|jsr.io|npm.jsr.io|pypi.org|files.pythonhosted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=
 TLC2 Version 2026.11.19.180144 (rev: bc1b506)
-Running breadth-first search Model-Checking with fp 34 and seed 3380483662957314722 with 1 worker on 2 cores with 1328MB heap and 64MB offheap memory [pid: 2847] (Linux 6.18.44-fc-v819 amd64, Ubuntu 21.0.12.1 64bit, MSBDiskFPSet, DiskStateQueue).
+Running breadth-first search Model-Checking with fp 90 and seed -1761135712273958423 with 1 worker on 2 cores with 1328MB heap and 64MB offheap memory [pid: 14809] (Linux 6.18.44-fc-v819 amd64, Ubuntu 21.0.12.1 64bit, MSBDiskFPSet, DiskStateQueue).
 Parsing file /home/claude/go_damned/formal-verification/weighted/DW_fanin_local.tla
-Parsing file /tmp/tlc-10367164619772285172/Integers.tla (jar:file:/tmp/claude-0/-home-claude/e0d5d864-24f2-5192-9233-62088837062e/scratchpad/tla/tla2tools.jar!/tla2sany/StandardModules/Integers.tla)
-Parsing file /tmp/tlc-10367164619772285172/FiniteSets.tla (jar:file:/tmp/claude-0/-home-claude/e0d5d864-24f2-5192-9233-62088837062e/scratchpad/tla/tla2tools.jar!/tla2sany/StandardModules/FiniteSets.tla)
-Parsing file /tmp/tlc-10367164619772285172/Sequences.tla (jar:file:/tmp/claude-0/-home-claude/e0d5d864-24f2-5192-9233-62088837062e/scratchpad/tla/tla2tools.jar!/tla2sany/StandardModules/Sequences.tla)
-Parsing file /tmp/tlc-10367164619772285172/TLC.tla (jar:file:/tmp/claude-0/-home-claude/e0d5d864-24f2-5192-9233-62088837062e/scratchpad/tla/tla2tools.jar!/tla2sany/StandardModules/TLC.tla)
-Parsing file /tmp/tlc-10367164619772285172/Naturals.tla (jar:file:/tmp/claude-0/-home-claude/e0d5d864-24f2-5192-9233-62088837062e/scratchpad/tla/tla2tools.jar!/tla2sany/StandardModules/Naturals.tla)
+Parsing file /tmp/tlc-5761514148295544710/Integers.tla (jar:file:/tmp/claude-0/-home-claude/e0d5d864-24f2-5192-9233-62088837062e/scratchpad/tla/tla2tools.jar!/tla2sany/StandardModules/Integers.tla)
+Parsing file /tmp/tlc-5761514148295544710/FiniteSets.tla (jar:file:/tmp/claude-0/-home-claude/e0d5d864-24f2-5192-9233-62088837062e/scratchpad/tla/tla2tools.jar!/tla2sany/StandardModules/FiniteSets.tla)
+Parsing file /tmp/tlc-5761514148295544710/Sequences.tla (jar:file:/tmp/claude-0/-home-claude/e0d5d864-24f2-5192-9233-62088837062e/scratchpad/tla/tla2tools.jar!/tla2sany/StandardModules/Sequences.tla)
+Parsing file /tmp/tlc-5761514148295544710/TLC.tla (jar:file:/tmp/claude-0/-home-claude/e0d5d864-24f2-5192-9233-62088837062e/scratchpad/tla/tla2tools.jar!/tla2sany/StandardModules/TLC.tla)
+Parsing file /tmp/tlc-5761514148295544710/Naturals.tla (jar:file:/tmp/claude-0/-home-claude/e0d5d864-24f2-5192-9233-62088837062e/scratchpad/tla/tla2tools.jar!/tla2sany/StandardModules/Naturals.tla)
 Semantic processing of module Naturals
 Semantic processing of module Integers
 Semantic processing of module Sequences
@@ -14,9 +14,9 @@ Semantic processing of module FiniteSets
 Semantic processing of module TLC
 Semantic processing of module DW_fanin_local
 Linting of module DW_fanin_local
-Starting... (2026-11-24 14:53:06)
+Starting... (2026-11-24 15:07:14)
 Computing initial states...
-Finished computing initial states: 1 distinct state generated at 2026-11-24 14:53:07.
+Finished computing initial states: 1 distinct state generated at 2026-11-24 15:07:14.
 Error: Invariant NoWrongSpike is violated.
 Error: The behavior up to this point is:
 State 1: <Initial predicate>
@@ -32,7 +32,7 @@ State 1: <Initial predicate>
 /\ kb = <<<<0, 0>>, <<0, 0>>>>
 /\ firedAt = <<-1, -1, -1, -1>>
 
-State 2: <NullSend(2,1) line 141, col 5 to line 146, col 65 of module DW_fanin_local>
+State 2: <NullSend(2,1) line 145, col 5 to line 150, col 65 of module DW_fanin_local>
 /\ sentB = <<<<-1, -1>>, <<1, -1>>>>
 /\ running = <<{}, {}>>
 /\ cm = << {[w |-> 1, nj |-> 4, ni |-> 0, st |-> 1]},
@@ -45,7 +45,7 @@ State 2: <NullSend(2,1) line 141, col 5 to line 146, col 65 of module DW_fanin_l
 /\ kb = <<<<0, 0>>, <<0, 0>>>>
 /\ firedAt = <<-1, -1, -1, -1>>
 
-State 3: <Receive(1,2) line 150, col 5 to line 156, col 64 of module DW_fanin_local>
+State 3: <Receive(1,2) line 154, col 5 to line 160, col 64 of module DW_fanin_local>
 /\ sentB = <<<<-1, -1>>, <<1, -1>>>>
 /\ running = <<{}, {}>>
 /\ cm = << {[w |-> 1, nj |-> 4, ni |-> 0, st |-> 1]},
@@ -58,7 +58,7 @@ State 3: <Receive(1,2) line 150, col 5 to line 156, col 64 of module DW_fanin_lo
 /\ kb = <<<<0, 1>>, <<0, 0>>>>
 /\ firedAt = <<-1, -1, -1, -1>>
 
-State 4: <NullSend(1,2) line 141, col 5 to line 146, col 65 of module DW_fanin_local>
+State 4: <NullSend(1,2) line 145, col 5 to line 150, col 65 of module DW_fanin_local>
 /\ sentB = <<<<-1, 2>>, <<1, -1>>>>
 /\ running = <<{}, {}>>
 /\ cm = << {[w |-> 1, nj |-> 4, ni |-> 0, st |-> 1]},
@@ -71,7 +71,7 @@ State 4: <NullSend(1,2) line 141, col 5 to line 146, col 65 of module DW_fanin_l
 /\ kb = <<<<0, 1>>, <<0, 0>>>>
 /\ firedAt = <<-1, -1, -1, -1>>
 
-State 5: <Receive(2,1) line 150, col 5 to line 156, col 64 of module DW_fanin_local>
+State 5: <Receive(2,1) line 154, col 5 to line 160, col 64 of module DW_fanin_local>
 /\ sentB = <<<<-1, 2>>, <<1, -1>>>>
 /\ running = <<{}, {}>>
 /\ cm = << {[w |-> 1, nj |-> 4, ni |-> 0, st |-> 1]},
@@ -84,7 +84,7 @@ State 5: <Receive(2,1) line 150, col 5 to line 156, col 64 of module DW_fanin_lo
 /\ kb = <<<<0, 1>>, <<2, 0>>>>
 /\ firedAt = <<-1, -1, -1, -1>>
 
-State 6: <Start(2) line 92, col 5 to line 99, col 65 of module DW_fanin_local>
+State 6: <Start(2) line 96, col 5 to line 103, col 65 of module DW_fanin_local>
 /\ sentB = <<<<-1, 2>>, <<1, -1>>>>
 /\ running = <<{}, {[w |-> 1, nj |-> 2, ni |-> 0, st |-> 0]}>>
 /\ cm = << {[w |-> 1, nj |-> 4, ni |-> 0, st |-> 1]},
@@ -96,7 +96,7 @@ State 6: <Start(2) line 92, col 5 to line 99, col 65 of module DW_fanin_local>
 /\ kb = <<<<0, 1>>, <<2, 0>>>>
 /\ firedAt = <<-1, -1, -1, -1>>
 
-State 7: <Start(2) line 92, col 5 to line 99, col 65 of module DW_fanin_local>
+State 7: <Start(2) line 96, col 5 to line 103, col 65 of module DW_fanin_local>
 /\ sentB = <<<<-1, 2>>, <<1, -1>>>>
 /\ running = << {},
    { [w |-> 1, nj |-> 2, ni |-> 0, st |-> 0],
@@ -109,7 +109,7 @@ State 7: <Start(2) line 92, col 5 to line 99, col 65 of module DW_fanin_local>
 /\ kb = <<<<0, 1>>, <<2, 0>>>>
 /\ firedAt = <<-1, -1, -1, -1>>
 
-State 8: <Finish(2) line 103, col 5 to line 112, col 51 of module DW_fanin_local>
+State 8: <Finish(2) line 107, col 5 to line 116, col 51 of module DW_fanin_local>
 /\ sentB = <<<<-1, 2>>, <<1, -1>>>>
 /\ running = <<{}, {[w |-> 1, nj |-> 3, ni |-> 0, st |-> 0]}>>
 /\ cm = <<{[w |-> 1, nj |-> 4, ni |-> 0, st |-> 1]}, {}>>
@@ -120,7 +120,7 @@ State 8: <Finish(2) line 103, col 5 to line 112, col 51 of module DW_fanin_local
 /\ kb = <<<<0, 1>>, <<2, 0>>>>
 /\ firedAt = <<-1, 1, -1, -1>>
 
-State 9: <Finish(2) line 103, col 5 to line 112, col 51 of module DW_fanin_local>
+State 9: <Finish(2) line 107, col 5 to line 116, col 51 of module DW_fanin_local>
 /\ sentB = <<<<-1, 2>>, <<1, -1>>>>
 /\ running = <<{}, {}>>
 /\ cm = <<{[w |-> 1, nj |-> 4, ni |-> 0, st |-> 1]}, {}>>
@@ -131,7 +131,7 @@ State 9: <Finish(2) line 103, col 5 to line 112, col 51 of module DW_fanin_local
 /\ kb = <<<<0, 1>>, <<2, 0>>>>
 /\ firedAt = <<-1, 1, 1, -1>>
 
-State 10: <Emit(2) line 116, col 5 to line 137, col 46 of module DW_fanin_local>
+State 10: <Emit(2) line 120, col 5 to line 141, col 46 of module DW_fanin_local>
 /\ sentB = <<<<-1, 2>>, <<1, -1>>>>
 /\ running = <<{}, {}>>
 /\ cm = <<{[w |-> 1, nj |-> 4, ni |-> 0, st |-> 1]}, {}>>
@@ -144,7 +144,7 @@ State 10: <Emit(2) line 116, col 5 to line 137, col 46 of module DW_fanin_local>
 /\ kb = <<<<0, 1>>, <<2, 0>>>>
 /\ firedAt = <<-1, 1, 1, -1>>
 
-State 11: <Emit(2) line 116, col 5 to line 137, col 46 of module DW_fanin_local>
+State 11: <Emit(2) line 120, col 5 to line 141, col 46 of module DW_fanin_local>
 /\ sentB = <<<<-1, 2>>, <<3, -1>>>>
 /\ running = <<{}, {}>>
 /\ cm = <<{[w |-> 1, nj |-> 4, ni |-> 0, st |-> 1]}, {}>>
@@ -158,7 +158,7 @@ State 11: <Emit(2) line 116, col 5 to line 137, col 46 of module DW_fanin_local>
 /\ kb = <<<<0, 1>>, <<2, 0>>>>
 /\ firedAt = <<-1, 1, 1, -1>>
 
-State 12: <Receive(1,2) line 150, col 5 to line 156, col 64 of module DW_fanin_local>
+State 12: <Receive(1,2) line 154, col 5 to line 160, col 64 of module DW_fanin_local>
 /\ sentB = <<<<-1, 2>>, <<3, -1>>>>
 /\ running = <<{}, {}>>
 /\ cm = << { [w |-> 1, nj |-> 4, ni |-> 0, st |-> 1],
@@ -173,7 +173,7 @@ State 12: <Receive(1,2) line 150, col 5 to line 156, col 64 of module DW_fanin_l
 /\ kb = <<<<0, 1>>, <<2, 0>>>>
 /\ firedAt = <<-1, 1, 1, -1>>
 
-State 13: <Receive(1,2) line 150, col 5 to line 156, col 64 of module DW_fanin_local>
+State 13: <Receive(1,2) line 154, col 5 to line 160, col 64 of module DW_fanin_local>
 /\ sentB = <<<<-1, 2>>, <<3, -1>>>>
 /\ running = <<{}, {}>>
 /\ cm = << { [w |-> 1, nj |-> 4, ni |-> 0, st |-> 1],
@@ -187,7 +187,7 @@ State 13: <Receive(1,2) line 150, col 5 to line 156, col 64 of module DW_fanin_l
 /\ kb = <<<<0, 3>>, <<2, 0>>>>
 /\ firedAt = <<-1, 1, 1, -1>>
 
-State 14: <Start(1) line 92, col 5 to line 99, col 65 of module DW_fanin_local>
+State 14: <Start(1) line 96, col 5 to line 103, col 65 of module DW_fanin_local>
 /\ sentB = <<<<-1, 2>>, <<3, -1>>>>
 /\ running = <<{[w |-> 1, nj |-> 4, ni |-> 0, st |-> 1]}, {}>>
 /\ cm = << { [w |-> 2, nj |-> 1, ni |-> 2, st |-> 2],
@@ -200,7 +200,7 @@ State 14: <Start(1) line 92, col 5 to line 99, col 65 of module DW_fanin_local>
 /\ kb = <<<<0, 3>>, <<2, 0>>>>
 /\ firedAt = <<-1, 1, 1, -1>>
 
-State 15: <Start(1) line 92, col 5 to line 99, col 65 of module DW_fanin_local>
+State 15: <Start(1) line 96, col 5 to line 103, col 65 of module DW_fanin_local>
 /\ sentB = <<<<-1, 2>>, <<3, -1>>>>
 /\ running = << { [w |-> 1, nj |-> 4, ni |-> 0, st |-> 1],
      [w |-> 2, nj |-> 1, ni |-> 2, st |-> 2] },
@@ -213,7 +213,7 @@ State 15: <Start(1) line 92, col 5 to line 99, col 65 of module DW_fanin_local>
 /\ kb = <<<<0, 3>>, <<2, 0>>>>
 /\ firedAt = <<-1, 1, 1, -1>>
 
-State 16: <Finish(1) line 103, col 5 to line 112, col 51 of module DW_fanin_local>
+State 16: <Finish(1) line 107, col 5 to line 116, col 51 of module DW_fanin_local>
 /\ sentB = <<<<-1, 2>>, <<3, -1>>>>
 /\ running = <<{[w |-> 1, nj |-> 4, ni |-> 0, st |-> 1]}, {}>>
 /\ cm = <<{[w |-> 2, nj |-> 1, ni |-> 3, st |-> 2]}, {}>>
@@ -224,7 +224,7 @@ State 16: <Finish(1) line 103, col 5 to line 112, col 51 of module DW_fanin_loca
 /\ kb = <<<<0, 3>>, <<2, 0>>>>
 /\ firedAt = <<3, 1, 1, -1>>
 
-State 17: <Start(1) line 92, col 5 to line 99, col 65 of module DW_fanin_local>
+State 17: <Start(1) line 96, col 5 to line 103, col 65 of module DW_fanin_local>
 /\ sentB = <<<<-1, 2>>, <<3, -1>>>>
 /\ running = << { [w |-> 1, nj |-> 4, ni |-> 0, st |-> 1],
      [w |-> 2, nj |-> 1, ni |-> 3, st |-> 2] },
@@ -237,7 +237,7 @@ State 17: <Start(1) line 92, col 5 to line 99, col 65 of module DW_fanin_local>
 /\ kb = <<<<0, 3>>, <<2, 0>>>>
 /\ firedAt = <<3, 1, 1, -1>>
 
-State 18: <Finish(1) line 103, col 5 to line 112, col 51 of module DW_fanin_local>
+State 18: <Finish(1) line 107, col 5 to line 116, col 51 of module DW_fanin_local>
 /\ sentB = <<<<-1, 2>>, <<3, -1>>>>
 /\ running = <<{[w |-> 1, nj |-> 4, ni |-> 0, st |-> 1]}, {}>>
 /\ cm = <<{}, {}>>
@@ -248,7 +248,7 @@ State 18: <Finish(1) line 103, col 5 to line 112, col 51 of module DW_fanin_loca
 /\ kb = <<<<0, 3>>, <<2, 0>>>>
 /\ firedAt = <<3, 1, 1, -1>>
 
-State 19: <Emit(1) line 116, col 5 to line 137, col 46 of module DW_fanin_local>
+State 19: <Emit(1) line 120, col 5 to line 141, col 46 of module DW_fanin_local>
 /\ sentB = <<<<-1, 2>>, <<3, -1>>>>
 /\ running = <<{[w |-> 1, nj |-> 4, ni |-> 0, st |-> 1]}, {}>>
 /\ cm = <<{}, {}>>
@@ -259,6 +259,6 @@ State 19: <Emit(1) line 116, col 5 to line 137, col 46 of module DW_fanin_local>
 /\ kb = <<<<0, 3>>, <<2, 0>>>>
 /\ firedAt = <<3, 1, 1, -1>>
 
-360 states generated, 182 distinct states found, 13 states left on queue.
+346 states generated, 173 distinct states found, 10 states left on queue.
 The depth of the complete state graph search is 19.
-Finished in 01s at (2026-11-24 14:53:07)
+Finished in 00s at (2026-11-24 15:07:14)

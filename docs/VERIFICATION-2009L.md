@@ -2,19 +2,20 @@
 
 *2026-11-24.* Follow-up to [`DEFECT-local-straggler.md`](DEFECT-local-straggler.md).
 
-The defect report showed the `2009` guard, as reconstructed in `Damned.go`, committing spikes the sequential simulation does not produce, and proposed `2009L`. Its evidence was a handful of hand-built scenarios run a few hundred times each. This note adds three things:
+The defect report showed the `2009` guard, as reconstructed in `Damned.go`, committing spikes the sequential simulation does not produce, and proposed `2009L`. Its evidence was a handful of hand-built scenarios run a few hundred times each. This note adds three checks and one fix:
 
 1. a reading of the 2009 paper, to see whether the defect is the paper's or the reconstruction's;
 2. a random-network search in Go (`fuzz_test.go`);
-3. a new TLA+ model with real neurons, model-checked over every interleaving (`formal-verification/weighted/`).
+3. a new TLA+ model with real neurons, model-checked over every interleaving (`formal-verification/weighted/`);
+4. a fix to the event order at equal times, which the long random search showed was under-specified (section 2.1).
 
 ## Summary
 
 | Check | `2009` | `2009L` |
 |---|---|---|
 | Hand-built scenarios (`go test`) | fails `fanin-local`, the S5 witness | 0 wrong runs |
-| Random networks, Go engine | 3 of 400 networks diverged | 0 of 400 (longer run in progress) |
-| TLA+, four named networks, every interleaving | wrong spike in 3 of 4 | no violation, no deadlock in 4 of 4 |
+| Random networks, Go engine | 3 of 400 networks diverged | in progress |
+| TLA+, five named networks, every interleaving | wrong spike in 3 of 5 | no violation, no deadlock in 5 of 5 |
 | TLA+, random networks, every interleaving | in progress | in progress |
 
 Read the `2009L` column at its actual strength. The Go search samples interleavings. TLC covers every interleaving, but only of the specific small networks it was given, under the simplifications listed below. Neither is a proof for all networks.
@@ -53,7 +54,27 @@ correct: N1 fires at 0; at t = 2 the -4 comes first, so N2 never fires
 
 Results:
 
-Default run (400 random networks per guard, 10 runs each, seed 1): `2009` diverged on 3, `2009L` on 0. A longer run (8,000 networks, 15 runs each) is in progress; results will be added here.
+Default run (400 random networks per guard, 10 runs each, seed 1): `2009` diverged on 3, `2009L` on 0.
+
+### 2.1 Equal-time order: a gap in the specification, now closed
+
+The first long run (8,000 networks, 15 runs each, seed 11) found **5 networks where `2009L` diverged**. The shrunk case was not a timing race:
+
+```
+P = 3; neurons N0..N4, thresholds 2,1,3,1,2 on processors 1,3,2,3,2
+N4 -> N0 (+2, delay 3);  N0 -> N2 (+2, delay 2);  N2 -> N0 (+1, delay 3)
+stimuli: N0 at t = 2, N2 at t = 0, N4 at t = 0
+correct: [0 2] [0 4] [2 0] [3 0] [5 2]
+2009L:   the same, plus [8 0]
+```
+
+At t = 3, N0 receives +1 from N2 and +2 from N4. A neuron resets to 0 when it fires, so the order matters. With +1 then +2, N0 fires on reaching 3 and keeps 0. With +2 then +1, it fires on reaching 2 and keeps the leftover +1, so the +1 that arrives at t = 8 makes it fire again. The sequential reference took the order in which it had created the impacts; the engine took the order in which they arrived. The 2009 paper says inhibitory impacts come before excitatory ones and says nothing about order within a sign, so neither was wrong: the rule was missing.
+
+**Fix.** Both `sequentialEDS` and the engine's queue (`cmQueue.pop`) now order equal-time events by (stamp, inhibitory first, source neuron), with stimuli first. The engine can always honour this under `2009L`, because the guard admits an event at stamp `s` only once nothing at or before `s` can still arrive, from peers or from local forecasts. Every impact at `s` is therefore already queued when the first one is integrated. Under `2009` that is not guaranteed, which is the defect itself. The shrunk case is now `TestEqualStampOrder2009L` (500 of 500 runs correct), and the TLA+ model and its generator use the same order.
+
+The same long run, repeated after the fix:
+
+In progress; results will be added here.
 
 Run it yourself:
 
@@ -67,7 +88,7 @@ FUZZ_CASES=8000 FUZZ_REPS=15 FUZZ_SEED=11 go test -run TestFuzz2009L -v -timeout
 `formal-verification/weighted/DamnedWeighted.tla.tmpl` models the `Damned.go` engine with what the earlier model lacked:
 
 - integer potentials, thresholds and signed weights;
-- the engine's event order (time, then inhibitory first), and a neuron that is still computing blocks the queue, as in `tryComputeAndEmit`;
+- the engine's event order (time, then inhibitory first, then source neuron), and a neuron that is still computing blocks the queue, as in `tryComputeAndEmit`;
 - forecast spikes waiting for emission, FIFO channels between each ordered pair of processors, and bounds computed as in `myBound` and overwritten on receipt;
 - the computation gate for `2009` (peer bounds) and `2009L` (peer bounds plus the local bound);
 - invariants that compare against the **correct spike train**: `NoWrongSpike` (nothing committed outside it) and `CompleteAtEnd` (all of it committed once everything drains), plus TLC's deadlock check.
@@ -87,10 +108,11 @@ Distinct states in brackets. "Concurrent" lets each processor compute for severa
 
 | Network | `2009`, concurrent | `2009`, one at a time | `2009L`, concurrent | `2009L`, one at a time |
 |---|---|---|---|---|
-| `cancel` (inhibitor remote) | no violation (148) | no violation (144) | no violation (142) | no violation (142) |
-| `fanin_local` (inhibitor local) | **wrong spike** | **wrong spike** | no violation (210) | no violation (205) |
+| `cancel` (inhibitor remote) | no violation (133) | no violation (129) | no violation (127) | no violation (127) |
+| `fanin_local` (inhibitor local) | **wrong spike** | **wrong spike** | no violation (195) | no violation (190) |
 | `fuzz_min` (two neurons) | **wrong spike** | **wrong spike** | no violation (48) | no violation (48) |
-| `mixed` (local and remote inhibitors) | **wrong spike** | **wrong spike** | no violation (412) | no violation (357) |
+| `mixed` (local and remote inhibitors) | **wrong spike** | **wrong spike** | no violation (340) | no violation (297) |
+| `equal_stamp` (section 2.1; no inhibition) | no violation (814,001) | no violation (813,748) | no violation (814,001) | no violation (813,748) |
 
 No run reached a deadlock.
 
@@ -105,14 +127,14 @@ Reproduce:
 ```bash
 cd formal-verification/weighted
 python3 gen.py                      # named networks
-python3 gen.py --random 150 2026    # random networks -> random/
+python3 gen.py --random 120 2026    # random networks -> random/
 ./run_tlc.sh /path/to/tla2tools.jar .
 ./run_tlc.sh /path/to/tla2tools.jar random
 ```
 
 ## What this establishes, and what it does not
 
-- **Established:** the `2009` computation gate, as reconstructed, admits wrong spikes whenever an inhibitor is local to its target and the race goes the wrong way, and TLC exhibits that on a model independent of the Go code. `2009L` removed every failure found by every method here.
+- **Established:** the `2009` computation gate, as reconstructed, admits wrong spikes whenever an inhibitor is local to its target and the race goes the wrong way, and TLC exhibits that on a model independent of the Go code, with or without concurrent computation. With the equal-time order fixed, `2009L` removed every failure found by every method here.
 - **Not established:** that `2009L` is correct for all networks, all channel capacities, or with the environment process sending stimuli over time; or that the published algorithm has the same defect.
 
 ## Next steps
