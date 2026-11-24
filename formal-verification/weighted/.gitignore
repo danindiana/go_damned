@@ -1,0 +1,5 @@
+# Random specs are regenerated with: python3 gen.py --random 120 2026
+random/DW_*
+random/results/
+*_TTrace_*
+states/

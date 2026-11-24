@@ -23,9 +23,9 @@ DAMNED (Mouraud, Puzenat and Paugam-Moisy) simulates spiking neural networks acr
 
 1. **The 2006 guard is unsound.** Reproduced: it commits spikes that should have been cancelled (`cancel`: 156 of 300 runs wrong on 2026-11-24).
 2. **The 2009 guard, as reconstructed here, is also unsound.** Its computation gate checks only *peer* bounds and never this processor's own un-emitted spikes. A four-neuron counterexample (`fanin-local`: inhibitor on the same processor as its target, excitation remote) produces a spike the sequential simulation does not. Details: [`docs/DEFECT-local-straggler.md`](docs/DEFECT-local-straggler.md).
-3. **A corrected guard, `2009L`, adds the missing local bound.** Zero wrong runs in every test so far, with no regression on the existing scenarios. This is a tested result over sampled interleavings, not a proof.
+3. **A corrected guard, `2009L`, adds the missing local bound.** It has had zero wrong runs in every test: the hand-built scenarios, a random-network search, and a TLA+ model checked over every interleaving of a set of small networks. That is strong evidence, not a proof for all networks. Details: [`docs/VERIFICATION-2009L.md`](docs/VERIFICATION-2009L.md).
 4. **The built-in soundness flag misses this class of error.** It reported 0 in every `2009` failure. The spike-train comparison against the sequential simulation caught all of them, so that comparison is the correctness criterion here.
-5. **The TLA+ model cannot see it either.** Its 2009 computation gate has the same blind spot, its exactness invariant is the same commit-time check as the flag, and it has no synaptic weights. TLC's clean result for 2009 does not cover this defect ([defect report, section 7](docs/DEFECT-local-straggler.md#7-consequences-for-the-tla-model)).
+5. **The original TLA+ model cannot see it; a new one can.** The original model's 2009 gate has the same blind spot, its exactness invariant is the same commit-time check as the flag, and it has no synaptic weights ([defect report, section 7](docs/DEFECT-local-straggler.md#7-consequences-for-the-tla-model)). A new model with real neurons, in [`formal-verification/weighted/`](formal-verification/weighted/), finds the 2009 failure, including when each processor computes one event at a time as the 2009 paper describes, and finds no violation under `2009L`.
 6. **Low latency exposes the defect; latency hides it.** With 1 ms of simulated link latency, `2009` passes `fanin-local` in 300 of 300 runs; with none it fails. Tightly coupled, low-latency interconnects (an on-chip mesh rather than an MPI cluster) are therefore the regime where this matters most.
 7. **A fixed-size spiking network computes an NC¹-complete function.** The `word` scenario tracks products in the symmetric group S5 (its word problem is NC¹-complete, by Barrington's theorem) with 364 neurons and 1,080 synapses at every word length, and depth 2n. Under `2009L` it returned the correct product in every run. Under `2009` it returned the wrong product in up to 44% of runs. Details: [`docs/WITNESS_REPORT.md`](docs/WITNESS_REPORT.md).
 8. **An accounting leak hung the engine on dense networks.** In-flight messages were decremented once per message but incremented once per event. Fixed.
@@ -255,9 +255,11 @@ Spikes are listed as `[time neuron]`. In `cancel` only the three stimulated sour
 ├── fanin.go                # fanin and fanin-local scenarios
 ├── witness_group.go        # S5/Z120 word-problem network and driver
 ├── damned_test.go          # go test: 2009L exactness and witness checks
+├── fuzz_test.go            # go test: random-network search, with shrinking
 ├── go.mod
 ├── docs/
 │   ├── DEFECT-local-straggler.md   # the 2009 defect, counterexample and fix
+│   ├── VERIFICATION-2009L.md       # paper reading, random search, model checking
 │   ├── WITNESS_REPORT.md           # the word-problem witness
 │   ├── results/                    # raw output of result runs
 │   └── diagrams/witness/           # 2026-09-05 witness and defect diagrams
@@ -265,6 +267,7 @@ Spikes are listed as `[time neuron]`. In `cancel` only the three stimulated sour
 ├── analysis/               # diagrams 01-07, 12-13: how the algorithm works
 ├── proofs/                 # diagrams 08-11: correctness argument for 2006 vs 2009
 ├── formal-verification/    # TLA+ model (DamnedFull2.tla) and TLC results
+│   └── weighted/           # TLA+ model with real neurons; generator and runner
 ├── reference/              # earlier TLA+ models and Python reference
 ├── examples/               # earlier single-file version, sample traces, viz.html
 ├── notes/2026-09-05/       # archived working notes

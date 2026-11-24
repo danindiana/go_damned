@@ -11,10 +11,12 @@ on this counterexample on 2026-11-24). These are tests over sampled
 interleavings, not a proof that `2009L` is sound.
 
 **Scope:** this is the `2009` guard as reconstructed in `Damned.go` from the
-2009 EANN paper (see the README's references). Whether the paper's own
-algorithm admits the same race depends on how it orders local computation
-against pending local emissions. That has not yet been checked line by line
-against the paper text.
+2009 EANN paper (see the README's references). A reading of the paper's
+processing rule (Algorithm 3) and a model of one-at-a-time processing, as the
+paper describes, are in [`VERIFICATION-2009L.md`](VERIFICATION-2009L.md): the
+race survives one-at-a-time processing, and the paper's rule as printed admits
+the boundary case, but its notation is not tight enough to settle the question
+from the text alone.
 
 **Reported:** 2026-09-05. **Rerun and integrated into the main tree:** 2026-11-24.
 
