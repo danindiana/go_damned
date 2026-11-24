@@ -153,6 +153,8 @@ python3 gen.py --random 120 2026    # random networks -> random/
 
 ## Next steps
 
+These are tracked, with the rest of the project's next steps, in the [README roadmap](../README.md#roadmap).
+
 1. Implement Algorithms 2 and 3 of the 2009 paper literally, as a fourth guard, and run the same checks.
 2. Prove the `2009L` gate sound for all networks, rather than checking instances: either an inductive invariant checked with TLAPS or Apalache, or a paper proof of the form "no impact can arrive below the gate's horizon".
 3. Model the environment process sending stimuli over time, and check with larger channel capacities.

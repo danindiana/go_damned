@@ -225,6 +225,8 @@ New guard value: `2009L`. New scenarios: `word`, `fanin`, `fanin-local`.
 
 ## 9. Next
 
+These are tracked, with the rest of the project's next steps, in the [README roadmap](../README.md#roadmap).
+
 1. ~~Answer the TLA+ question~~ Answered 2026-11-24: the model cannot detect
    this class (section 7 of the defect report). Extending it with weights and a
    spike-train exactness invariant is the open item.

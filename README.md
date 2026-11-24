@@ -279,6 +279,51 @@ Spikes are listed as `[time neuron]`. In `cancel` only the three stimulated sour
 
 The proofs and formal-verification folders predate the `2009` defect; each has a note at the top saying what it does and does not establish.
 
+## Roadmap
+
+Ordered so that each phase rests on the one before it: correctness first, because the hardware this is aimed at (a low-latency on-chip mesh) is exactly where the `2009` defect shows up. No dates are attached; status reflects 2026-11-24.
+
+### Phase 1: settle correctness
+
+| # | Step | Why | Status |
+|---|---|---|---|
+| 1.1 | Classify all 39 `2009` failures from the long random search by shape | The claim that every failure is a local inhibitor rests so far on the cases examined (all TLA+ counterexamples, the shrunk Go cases), not on all 39 | Next |
+| 1.2 | Implement Algorithms 2 and 3 of the 2009 paper literally, as a fourth guard, and run every check against it | Settles whether the defect is in the published algorithm or only in this reconstruction ([verification report, section 1](docs/VERIFICATION-2009L.md#1-the-2009-paper)) | Next |
+| 1.3 | Extend the TLA+ model: stimuli arriving over time from Pr0, channels larger than 3 messages, liveness under fairness | Removes the three main simplifications behind the current TLC results | Open |
+| 1.4 | Prove `2009L` sound for all networks | Every result so far covers specific networks; a proof covers all of them. Either an inductive invariant checked with TLAPS or Apalache, or a written proof that nothing can arrive below the gate's horizon | Open |
+| 1.5 | Replace or remove the `flagged-unsound` diagnostic | It reported 0 in every `2009` failure; spike-train comparison is the real test | Open |
+| 1.6 | Continuous integration: `go vet`, `go test -race` and TLC on the named networks on every push | Keeps the `2009L` results from regressing silently | Open |
+
+### Phase 2: make the engine usable beyond tests
+
+| # | Step | Why | Status |
+|---|---|---|---|
+| 2.1 | Distributed termination detection in place of the current heuristic | The heuristic relies on global counters a real distributed runtime does not have (design note 5) | Open |
+| 2.2 | Measure null-message traffic, then piggyback bounds on events or adapt their rate | Bounds are broadcast every tick for clarity; that cost grows with processor count (design note 3) | Open |
+| 2.3 | Scale tests: larger networks and more processors, still checked against `sequentialEDS` | Current checks use at most 6 neurons (random search) and 364 neurons (S5 witness) | Open |
+
+### Phase 3: the computation witness
+
+From the [witness report, section 9](docs/WITNESS_REPORT.md#9-next).
+
+| # | Step | Why | Status |
+|---|---|---|---|
+| 3.1 | Rerun the S5 and Z120 witness at n = 64 under `2009L` with the equal-time fix | n = 64 was last run on 2026-09-05, before the fix | Next |
+| 3.2 | Sweep `dmin` | Measures serialization cost against lookahead; all delays are currently 1 | Open |
+| 3.3 | Add an A5 versus S4 control pair | Confirms the resource profile tracks group size and generator count, not solvability | Open |
+| 3.4 | Composition witness | Still open | Open |
+
+### Phase 4: Tenstorrent Blackhole
+
+| # | Step | Why | Status |
+|---|---|---|---|
+| 4.1 | Confirm whether the Blackhole network-on-chip delivers messages between a pair of cores in order, including multicast | The algorithm requires per-pair FIFO (design note 2). If it is not guaranteed, add sequence numbers per link. Unverified | Question raised with Tenstorrent |
+| 4.2 | Map processors to Tensix cores, with event queues and bounds in on-core memory and the `2009L` gate in the kernel | The low-latency regime is where `2009` fails, so the port starts from `2009L` | Blocked on hardware access |
+| 4.3 | Check on-chip runs with the same reference: spike-train equality against `sequentialEDS` | Correctness on hardware has to be shown the same way as here, not assumed from it | Blocked on 4.2 |
+| 4.4 | Compare throughput and latency with the Go engine | Shows whether the port is worth having | Blocked on 4.2 |
+
+The [open-questions diagram](diagrams/2026-11-24-verification/08_open_questions.png) shows how phases 1 and 4 depend on each other.
+
 ## References
 
 1. A. Mouraud, D. Puzenat and H. Paugam-Moisy. *DAMNED: A Distributed and Multithreaded Neural Event-Driven simulation framework.* arXiv:cs/0512018, 2005 (v2, March 2006). <https://arxiv.org/abs/cs/0512018>. This is the paper in [`paper/`](paper/) and the source of the `2006` guard.
