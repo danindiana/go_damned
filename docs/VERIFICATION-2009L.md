@@ -14,9 +14,9 @@ The defect report showed the `2009` guard, as reconstructed in `Damned.go`, comm
 | Check | `2009` | `2009L` |
 |---|---|---|
 | Hand-built scenarios (`go test`) | fails `fanin-local`, the S5 witness | 0 wrong runs |
-| Random networks, Go engine | 3 of 400 networks diverged | in progress |
+| Random networks, Go engine (8,000 networks, 15 runs each) | 39 of 8,000 diverged | 0 of 8,000 (after the equal-time fix, section 2.1) |
 | TLA+, five named networks, every interleaving | wrong spike in 3 of 5 | no violation, no deadlock in 5 of 5 |
-| TLA+, random networks, every interleaving | in progress | in progress |
+| TLA+, random networks, every interleaving | wrong spike in 1 of 120 | no violation, no deadlock in 120 of 120 |
 
 Read the `2009L` column at its actual strength. The Go search samples interleavings. TLC covers every interleaving, but only of the specific small networks it was given, under the simplifications listed below. Neither is a proof for all networks.
 
@@ -74,13 +74,18 @@ At t = 3, N0 receives +1 from N2 and +2 from N4. A neuron resets to 0 when it fi
 
 The same long run, repeated after the fix:
 
-In progress; results will be added here.
+| Guard | Networks | Runs each | Diverged |
+|---|---|---|---|
+| `2009` | 8,000 | 15 | **39** |
+| `2009L` | 8,000 | 15 | **0** |
+
+Same seed (11) and networks for both. The smallest `2009` case the shrinker returned from this run has the same shape as before: an inhibitor on the same processor as its target, with the excitation arriving at the same stamp.
 
 Run it yourself:
 
 ```bash
 go test -run TestFuzz -v .                                   # 400 networks per guard, ~1 minute
-FUZZ_CASES=8000 FUZZ_REPS=15 FUZZ_SEED=11 go test -run TestFuzz2009L -v -timeout 3h .
+FUZZ_CASES=8000 FUZZ_REPS=15 FUZZ_SEED=11 go test -run TestFuzz -v -timeout 4h .   # ~35 minutes
 ```
 
 ## 3. TLA+ model with real neurons
@@ -120,7 +125,16 @@ The `fanin_local` counterexample TLC found: processor 1 is still computing the s
 
 ### Random networks
 
-A batch of 120 random networks (2–3 processors, 2–4 neurons), each checked under both guards, concurrent and one at a time, is in progress; results will be added here.
+120 random networks from `gen.py --random 120 2026`: 2 or 3 processors (34 have 3), 2 to 4 neurons, signed weights, delays 1 or 2, 1 to 3 stimuli, `TMAX = 4`. Networks in which nothing fires were skipped. Each was checked four ways. One line per network and variant is in [`../formal-verification/weighted/random/summary.txt`](../formal-verification/weighted/random/summary.txt).
+
+| Variant | No violation | Wrong spike | Deadlock or incomplete |
+|---|---|---|---|
+| `2009`, concurrent | 119 | **1** | 0 |
+| `2009`, one at a time | 119 | **1** | 0 |
+| `2009L`, concurrent | 120 | 0 | 0 |
+| `2009L`, one at a time | 120 | 0 | 0 |
+
+The one `2009` failure (`r061`) is again a local inhibitor: both neurons on processor 2, an inhibitory synapse from N2 to N1, and a stimulus to N1 at the stamp the inhibition lands. State spaces ranged from 60 to 1,054,337 distinct states (median 138).
 
 Reproduce:
 
