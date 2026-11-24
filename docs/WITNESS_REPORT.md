@@ -136,7 +136,12 @@ runs per cell; n = 64 not rerun). Full output in
 | Z120 | 32 | 2009 / 2009L | 24 / **0** | 18 / **0** | 18 / 0 | 0 / 0 |
 
 Network size was 364 neurons and 1,080 synapses in every cell, and the encoding
-check passed in every cell. The `2009` failure rates differ from the first run
+check passed in every cell.
+
+Later the same day, after the equal-time order fix, n = 64 was rerun under
+`2009L` (5 words x 10 reps = 50 runs per group): S5 0/50 wrong products, Z120
+0/50, no train mismatches. Output in
+[`results/2026-11-24-n64.txt`](results/2026-11-24-n64.txt). The `2009` failure rates differ from the first run
 (27% against 44% wrong products for S5 at n = 32); they depend on scheduling and
 should not be quoted as stable rates. `2009L` was 0 in every cell of both runs.
 

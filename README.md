@@ -292,7 +292,7 @@ Ordered so that each phase rests on the one before it: correctness first, becaus
 | 1.3 | Extend the TLA+ model: stimuli arriving over time from Pr0, channels larger than 3 messages, liveness under fairness | Removes the three main simplifications behind the current TLC results | Open |
 | 1.4 | Prove `2009L` sound for all networks | Every result so far covers specific networks; a proof covers all of them. Either an inductive invariant checked with TLAPS or Apalache, or a written proof that nothing can arrive below the gate's horizon | Open |
 | 1.5 | Replace or remove the `flagged-unsound` diagnostic | It reported 0 in every `2009` failure; spike-train comparison is the real test | Open |
-| 1.6 | Continuous integration: `go vet`, `go test -race` and TLC on the named networks on every push | Keeps the `2009L` results from regressing silently | Open |
+| 1.6 | Continuous integration: `go vet`, `go test -race` and TLC on the named networks on every push | Keeps the `2009L` results from regressing silently | **Added 2026-11-24** (`.github/workflows/ci.yml`) |
 
 ### Phase 2: make the engine usable beyond tests
 
@@ -308,7 +308,7 @@ From the [witness report, section 9](docs/WITNESS_REPORT.md#9-next).
 
 | # | Step | Why | Status |
 |---|---|---|---|
-| 3.1 | Rerun the S5 and Z120 witness at n = 64 under `2009L` with the equal-time fix | n = 64 was last run on 2026-09-05, before the fix | Next |
+| 3.1 | Rerun the S5 and Z120 witness at n = 64 under `2009L` with the equal-time fix | n = 64 was last run on 2026-09-05, before the fix | **Done 2026-11-24:** 0/50 wrong for both groups ([output](docs/results/2026-11-24-n64.txt)) |
 | 3.2 | Sweep `dmin` | Measures serialization cost against lookahead; all delays are currently 1 | Open |
 | 3.3 | Add an A5 versus S4 control pair | Confirms the resource profile tracks group size and generator count, not solvability | Open |
 | 3.4 | Composition witness | Still open | Open |

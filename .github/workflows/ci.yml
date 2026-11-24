@@ -1,0 +1,44 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  go:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+      - name: vet
+        run: go vet .
+      - name: test
+        run: go test -count=1 -v .
+      - name: test with the race detector (fixed scenarios)
+        run: go test -race -count=1 -run 'Test(Cancel|Ring|FaninLocal|WordWitness|WordSize|EqualStamp)' .
+
+  tla:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+      - name: fetch TLC
+        run: curl -sSL -o /tmp/tla2tools.jar https://github.com/tlaplus/tlaplus/releases/download/v1.8.0/tla2tools.jar
+      - name: model-check the named networks
+        working-directory: formal-verification/weighted
+        run: |
+          python3 gen.py
+          ./run_tlc.sh /tmp/tla2tools.jar . | tee summary.txt
+          # 2009L must pass every named network, concurrent and one at a time.
+          if grep -E ' 2009L(_serial)? ' summary.txt | grep -v ' OK '; then
+            echo "2009L failed a named network"; exit 1
+          fi
+          # 2009 must still fail the three local-inhibitor networks (the checks have teeth).
+          for n in fanin_local fuzz_min mixed; do
+            grep -q "DW_${n} 2009 VIOLATION" summary.txt || { echo "2009 no longer fails ${n}"; exit 1; }
+          done
