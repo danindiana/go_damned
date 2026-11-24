@@ -1,0 +1,44 @@
+### s5 n=8 guard=2009
+group=S5    n=8   P=3 guard=2009 | neurons=364 synapses=1080 depth=16 | encoding=true
+   runs=100  train-mismatch=8 (short=0 extra=8 same-len=0)  answer-wrong=3  one-hot-broken=5  flagged-unsound=0
+### s5 n=8 guard=2009L
+group=S5    n=8   P=3 guard=2009L | neurons=364 synapses=1080 depth=16 | encoding=true
+   runs=100  train-mismatch=0 (short=0 extra=0 same-len=0)  answer-wrong=0  one-hot-broken=0  flagged-unsound=0
+### s5 n=16 guard=2009
+group=S5    n=16  P=3 guard=2009 | neurons=364 synapses=1080 depth=32 | encoding=true
+   runs=100  train-mismatch=22 (short=0 extra=22 same-len=0)  answer-wrong=14  one-hot-broken=17  flagged-unsound=0
+### s5 n=16 guard=2009L
+group=S5    n=16  P=3 guard=2009L | neurons=364 synapses=1080 depth=32 | encoding=true
+   runs=100  train-mismatch=0 (short=0 extra=0 same-len=0)  answer-wrong=0  one-hot-broken=0  flagged-unsound=0
+### s5 n=32 guard=2009
+group=S5    n=32  P=3 guard=2009 | neurons=364 synapses=1080 depth=64 | encoding=true
+   runs=100  train-mismatch=37 (short=0 extra=37 same-len=0)  answer-wrong=27  one-hot-broken=35  flagged-unsound=0
+### s5 n=32 guard=2009L
+group=S5    n=32  P=3 guard=2009L | neurons=364 synapses=1080 depth=64 | encoding=true
+   runs=100  train-mismatch=0 (short=0 extra=0 same-len=0)  answer-wrong=0  one-hot-broken=0  flagged-unsound=0
+### z120 n=8 guard=2009
+group=Z120  n=8   P=3 guard=2009 | neurons=364 synapses=1080 depth=16 | encoding=true
+   runs=100  train-mismatch=8 (short=0 extra=8 same-len=0)  answer-wrong=2  one-hot-broken=2  flagged-unsound=0
+### z120 n=8 guard=2009L
+group=Z120  n=8   P=3 guard=2009L | neurons=364 synapses=1080 depth=16 | encoding=true
+   runs=100  train-mismatch=0 (short=0 extra=0 same-len=0)  answer-wrong=0  one-hot-broken=0  flagged-unsound=0
+### z120 n=16 guard=2009
+group=Z120  n=16  P=3 guard=2009 | neurons=364 synapses=1080 depth=32 | encoding=true
+   runs=100  train-mismatch=25 (short=0 extra=25 same-len=0)  answer-wrong=18  one-hot-broken=18  flagged-unsound=0
+### z120 n=16 guard=2009L
+group=Z120  n=16  P=3 guard=2009L | neurons=364 synapses=1080 depth=32 | encoding=true
+   runs=100  train-mismatch=0 (short=0 extra=0 same-len=0)  answer-wrong=0  one-hot-broken=0  flagged-unsound=0
+### z120 n=32 guard=2009
+group=Z120  n=32  P=3 guard=2009 | neurons=364 synapses=1080 depth=64 | encoding=true
+   runs=100  train-mismatch=24 (short=0 extra=24 same-len=0)  answer-wrong=18  one-hot-broken=18  flagged-unsound=0
+### z120 n=32 guard=2009L
+group=Z120  n=32  P=3 guard=2009L | neurons=364 synapses=1080 depth=64 | encoding=true
+   runs=100  train-mismatch=0 (short=0 extra=0 same-len=0)  answer-wrong=0  one-hot-broken=0  flagged-unsound=0
+### latency 0 guard 2009
+  mismatches=172/300  flagged-unsound=0/300
+### latency 1ms guard 2009
+  mismatches=0/300  flagged-unsound=0/300
+### latency 0 guard 2009L
+  mismatches=0/300  flagged-unsound=0/300
+### latency 1ms guard 2009L
+  mismatches=0/300  flagged-unsound=0/300

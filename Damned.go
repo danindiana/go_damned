@@ -22,17 +22,24 @@
 // "delayed firing problem", Fig. 1 of the paper). A distributed simulator must
 // therefore never *commit* an emission until it is certain no earlier-arriving
 // spike can still cancel it. DAMNED 2006 got the emission guard subtly wrong;
-// DAMNED 2009 fixed it by adopting the Chandy-Misra-Bryant discipline: emit
-// only once every peer's lower-bound-on-future-emissions (an LBTS) has passed
-// the event's stamp, and advertise your own bound via null messages.
+// DAMNED 2009 adopted the Chandy-Misra-Bryant discipline: emit only once every
+// peer's lower-bound-on-future-emissions (an LBTS) has passed the event's
+// stamp, and advertise your own bound via null messages.
 //
-// This program implements BOTH guards. Run with -guard=2009 (default, correct)
-// or -guard=2006 (the original, which can commit spikes that never happen).
-// A sequential ground-truth simulator checks the distributed spike train.
+// The 2009 computation gate, as reconstructed here, is still unsound: it checks
+// only PEER bounds, never this processor's own un-emitted forecasts, so a local
+// inhibitory spike can lose the race (scenario fanin-local). Guard 2009L adds
+// that local bound. See docs/DEFECT-local-straggler.md.
 //
-//   go run damned.go                 # correct engine, cancellation scenario
-//   go run damned.go -guard=2006     # watch exactness break
-//   go run damned.go -scenario=ring  # a busier recurrent network
+// This program implements all three guards: -guard=2006, -guard=2009 and
+// -guard=2009L (default). A sequential ground-truth simulator checks every
+// distributed spike train.
+//
+//   go build -o damned .
+//   ./damned                                  # 2009L, cancellation scenario
+//   ./damned -guard=2006                      # watch exactness break
+//   ./damned -scenario=fanin-local -procs=2 -guard=2009 -reps=600
+//   ./damned -scenario=ring                   # a busier recurrent network
 //
 package main
 
@@ -488,7 +495,7 @@ func (e *engine) emitAuthorized(pl *procLocal, c CPEvent) bool {
 		}
 		return false
 	}
-	// 2009 discipline: local clear AND every peer's channel clock strictly past st.
+	// 2009 / 2009L discipline: local clear AND every peer's clock strictly past st.
 	if !pl.localClear(c.Ni, c.St) {
 		return false
 	}
@@ -502,14 +509,38 @@ func (e *engine) emitAuthorized(pl *procLocal, c CPEvent) bool {
 }
 
 func main() {
-	guard := flag.String("guard", "2009", "emission guard: 2009 (correct) or 2006 (unsound)")
-	scenario := flag.String("scenario", "cancel", "scenario: cancel | ring")
+	guard := flag.String("guard", "2009L", "guard: 2006 (published, unsound) | 2009 (published revision, unsound locally; see DEFECT-local-straggler.md) | 2009L (2009 plus the local bound)")
+	scenario := flag.String("scenario", "cancel", "scenario: cancel | ring | fanin | fanin-local | word")
+	wgroup := flag.String("group", "s5", "word-problem group: s5 | z120")
+	wlen := flag.Int("len", 8, "word length n (scenario=word)")
+	wprocs := flag.Int("procs", 3, "processor count (scenario=word, fanin, fanin-local)")
+	wwords := flag.Int("words", 5, "distinct random words to test (scenario=word)")
 	reps := flag.Int("reps", 200, "repetitions (concurrency is nondeterministic)")
 	lat := flag.Duration("latency", 0, "simulated inter-processor message latency, e.g. 2ms")
 	verbose := flag.Bool("verbose", false, "print each commit as it happens; forces reps=1")
 	traceFile := flag.String("trace", "", "write a JSON event trace of one run to this file")
 	runTrace := flag.String("runtrace", "", "write a Go runtime execution trace (open with: go tool trace FILE)")
 	flag.Parse()
+
+	if *scenario == "fanin" || *scenario == "fanin-local" {
+		var net *Network; var stim []CMEvent; var tm int
+		if *scenario == "fanin" { net, stim, tm = buildFanin(*wprocs) } else { net, stim, tm = buildFaninLocalInhib(*wprocs) }
+		truth := sequentialEDS(net, stim, tm)
+		fmt.Printf("%s P=%d guard=%s truth=%v\n", *scenario, *wprocs, *guard, truth)
+		mm, bad := 0, 0
+		for r := 0; r < *reps; r++ {
+			got, b, _ := runOnce(net, stim, Config{Guard: *guard, TMax: tm, Latency: *lat})
+			if !equalPairs(got, truth) { mm++ }
+			if b { bad++ }
+		}
+		fmt.Printf("  mismatches=%d/%d  flagged-unsound=%d/%d\n", mm, *reps, bad, *reps)
+		return
+	}
+	if *scenario == "word" {
+		runWordWitness(*wgroup, *wlen, *wprocs, *wwords, *reps,
+			Config{Guard: *guard, Latency: *lat}).print()
+		return
+	}
 
 	var net *Network
 	var stim []CMEvent
@@ -798,8 +829,14 @@ func (e *engine) processorLoop(pl *procLocal, states []*procLocal) {
 				pl.cm.push(ev)
 			}
 			pl.mu.Unlock()
-			if len(msg.Evs) > 0 {
-				atomic.AddInt64(&e.inFlight, -1)
+			// BUGFIX (found by the word-problem scenario): the send side
+			// increments inFlight once PER EVENT, so the receive side must
+			// decrement once per event too. Decrementing once per MESSAGE
+			// leaks len(Evs)-1 on every multi-event message and termination
+			// detection never reaches quiescence. Invisible in cancel/ring
+			// (fan-out to any one peer is 1), fatal for any dense fan-out.
+			if n := len(msg.Evs); n > 0 {
+				atomic.AddInt64(&e.inFlight, -int64(n))
 			}
 			e.tryComputeAndEmit(pl, states, &ecWG, results)
 
@@ -845,12 +882,36 @@ func (e *engine) tryComputeAndEmit(pl *procLocal, states []*procLocal, ecWG *syn
 		// proceed more eagerly (which is exactly what lets stragglers slip).
 		top := pl.cm.minStamp()
 		ok := true
-		if e.cfg.Guard == "2009" {
+		if e.cfg.Guard == "2009" || e.cfg.Guard == "2009L" {
 			for _, b := range pl.clk {
 				if !(top < b) {
 					ok = false
 					break
 				}
+			}
+		}
+		// 2009L: the LOCAL half of the same discipline. The peer loop above
+		// proves no *remote* processor can still deliver an impact at or before
+		// `top`. It says nothing about THIS processor: a CP event sitting
+		// un-emitted at stamp s will produce impacts at s+d >= s+dmin, and if
+		// top >= s+dmin one of those impacts may be an inhibition that belongs
+		// before the event we are about to integrate. `cancel` and `ring` never
+		// expose this because in both the inhibitory source is remote from its
+		// target. Found by scenario=word / scenario=fanin-local.
+		if ok && e.cfg.Guard == "2009L" {
+			selfB := INF
+			for _, c := range pl.cp { // forecast, not yet emitted
+				if c.St < selfB {
+					selfB = c.St
+				}
+			}
+			for _, r := range pl.running { // inside an EC thread, may yet fire
+				if r.St < selfB {
+					selfB = r.St
+				}
+			}
+			if selfB < INF && !(top < selfB+e.dmin) {
+				ok = false
 			}
 		}
 		if !ok {

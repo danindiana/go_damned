@@ -1,5 +1,8 @@
 # Formal Verification via TLA+
 
+> **Scope note (2026-11-24).** TLC found no violation of the `Exactness` invariant for the 2009 discipline at the constants below. That is weaker than this page originally claimed. `Exactness` here is a commit-time check that no impact on the neuron is still pending; it does not compare spike trains with the sequential simulation. The model also has no synaptic weights, and its 2009 computation gate checks only peer bounds. The Go engine has since found a case the model cannot represent, where the 2009 guard as reconstructed here produces a wrong spike. See [`../docs/DEFECT-local-straggler.md`](../docs/DEFECT-local-straggler.md), section 7. Read "proves" below as "finds no violation of this invariant in the reachable states at these constants".
+
+
 This folder contains a complete formal specification of the DAMNED distributed simulator in **TLA+**, a language for reasoning about concurrent and distributed algorithms. It includes model-checking results that **mathematically prove** the 2009 fix is correct and the 2006 guard is broken.
 
 ## What is TLA+?

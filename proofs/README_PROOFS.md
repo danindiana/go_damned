@@ -1,5 +1,8 @@
 # Formal Correctness & Proof Diagrams
 
+> **Scope note (2026-11-24).** These diagrams argue that the 2009 discipline is sound because every *peer's* bound must pass a spike's stamp before it is committed. That argument omits the processor's own pending work: a spike it has forecast but not yet emitted can still deliver an earlier inhibitory impact to a local neuron. The Go engine shows the 2009 guard, as reconstructed here, failing for exactly that reason, and a corrected guard (`2009L`) that adds the local bound. See [`../docs/DEFECT-local-straggler.md`](../docs/DEFECT-local-straggler.md). The diagrams' account of the 2006 bug stands.
+
+
 This folder contains 4 diagrams that visualize the **mathematical proof structure** of DAMNED: how safety properties are established, what the counterexample looks like, how liveness is ensured, and how DAMNED maps to the Chandy-Misra-Bryant distributed algorithm framework.
 
 These diagrams bridge the gap between implementation/testing and formal verification. They are the visual proofs.
