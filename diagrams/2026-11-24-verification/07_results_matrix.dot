@@ -1,0 +1,42 @@
+digraph results_matrix {
+    graph [bgcolor="#0d1117", fontname="Helvetica", fontcolor="#e6edf3",
+           labelloc="t", fontsize=20, label="Results, 2026-11-24 (after the equal-time order fix)\n "];
+    node  [fontname="Helvetica", fontcolor="#e6edf3", shape=plaintext];
+
+    t [label=<
+<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="10" COLOR="#30363d" BGCOLOR="#161b22">
+  <TR>
+    <TD BGCOLOR="#0d2e2e"><FONT COLOR="#39c5cf"><B>Check</B></FONT></TD>
+    <TD BGCOLOR="#0d2e2e"><FONT COLOR="#39c5cf"><B>Orderings covered</B></FONT></TD>
+    <TD BGCOLOR="#1f2937"><FONT COLOR="#d29922"><B>2009</B></FONT></TD>
+    <TD BGCOLOR="#13294d"><FONT COLOR="#58a6ff"><B>2009L</B></FONT></TD>
+  </TR>
+  <TR>
+    <TD ALIGN="LEFT">Hand-built scenarios (go test)</TD>
+    <TD ALIGN="LEFT">sampled</TD>
+    <TD><FONT COLOR="#f85149">fails fanin-local, S5 witness</FONT></TD>
+    <TD><FONT COLOR="#3fb950">0 wrong runs</FONT></TD>
+  </TR>
+  <TR>
+    <TD ALIGN="LEFT">Random networks, Go engine<BR/>8,000 networks × 15 runs, seed 11</TD>
+    <TD ALIGN="LEFT">sampled</TD>
+    <TD><FONT COLOR="#f85149">39 diverged</FONT></TD>
+    <TD><FONT COLOR="#3fb950">0 diverged</FONT></TD>
+  </TR>
+  <TR>
+    <TD ALIGN="LEFT">TLA+, 5 named networks<BR/>concurrent and one at a time</TD>
+    <TD ALIGN="LEFT">all, per network</TD>
+    <TD><FONT COLOR="#f85149">wrong spike in 3 of 5</FONT></TD>
+    <TD><FONT COLOR="#3fb950">no violation, no deadlock</FONT></TD>
+  </TR>
+  <TR>
+    <TD ALIGN="LEFT">TLA+, 120 random networks<BR/>concurrent and one at a time</TD>
+    <TD ALIGN="LEFT">all, per network</TD>
+    <TD><FONT COLOR="#f85149">wrong spike in 1 of 120</FONT></TD>
+    <TD><FONT COLOR="#3fb950">no violation, no deadlock</FONT></TD>
+  </TR>
+  <TR>
+    <TD ALIGN="LEFT" COLSPAN="4"><FONT COLOR="#adbac7" POINT-SIZE="11">Every 2009 failure examined (all TLA+ counterexamples, the shrunk Go cases) has the same shape: an inhibitor on the same processor as its target.<BR ALIGN="LEFT"/>Strong evidence for 2009L, not a proof for all networks. Details: docs/VERIFICATION-2009L.md<BR ALIGN="LEFT"/></FONT></TD>
+  </TR>
+</TABLE>>];
+}

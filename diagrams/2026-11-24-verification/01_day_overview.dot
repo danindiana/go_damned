@@ -1,0 +1,42 @@
+digraph day_overview {
+    graph [bgcolor="#0d1117", rankdir=LR, fontname="Helvetica", fontcolor="#e6edf3",
+           labelloc="t", fontsize=20, nodesep=0.35, ranksep=0.55,
+           label="2026-11-24: from a tested fix to a checked one\n "];
+    node  [fontname="Helvetica", fontcolor="#e6edf3", color="#30363d", style="filled,rounded",
+           shape=box, penwidth=2, margin="0.25,0.18", fillcolor="#161b22", fontsize=12];
+    edge  [color="#8b949e", fontname="Helvetica", fontcolor="#adbac7", penwidth=1.6, arrowsize=0.9, fontsize=10];
+
+    subgraph cluster_morning {
+        label="Repository clean-up"; fontcolor="#3fb950"; color="#3fb950"; style="rounded";
+        integrate [label="Integrate 2009L, witness and\nfanin scenarios into main tree\n(from the 2026-09-05 zip)", color="#3fb950"];
+        rerun     [label="Rerun experiments\n2009 fails, 2009L 0 wrong", color="#3fb950"];
+        docs      [label="README rewritten\nwrong 2009 citation fixed\nTLA+ scope notes", color="#3fb950"];
+        integrate -> rerun -> docs;
+    }
+
+    subgraph cluster_checks {
+        label="Is 2009L actually right?"; fontcolor="#58a6ff"; color="#58a6ff"; style="rounded";
+        paper [label="1. Read the 2009 paper\nAlgorithm 3 admits the\nboundary case (≤)", color="#58a6ff", fillcolor="#13294d"];
+        fuzz  [label="2. Random-network search\n(fuzz_test.go, with shrinking)", color="#58a6ff", fillcolor="#13294d"];
+        tla   [label="3. New TLA+ model\nreal neurons, spike-train\ninvariants, every interleaving", color="#58a6ff", fillcolor="#13294d"];
+    }
+
+    tie [label="Long search: 5 of 8,000\n2009L runs diverged\n→ equal-time order\nwas under-specified", color="#f0883e"];
+    fix [label="Fix: order equal-time impacts by\n(stamp, inhibitory first, source)\nin engine AND reference", color="#d29922", fillcolor="#1f2937"];
+
+    subgraph cluster_results {
+        label="Final results"; fontcolor="#d29922"; color="#d29922"; style="rounded";
+        r1 [label="Go search, 8,000 networks\n2009: 39 diverged\n2009L: 0", color="#d29922", fillcolor="#1f2937"];
+        r2 [label="TLC, 5 named + 120 random\n2009: wrong spike in 4\n2009L: 0 violations, 0 deadlocks", color="#d29922", fillcolor="#1f2937"];
+    }
+
+    pushed [label="Pushed to main\n463bb21", color="#39c5cf", fillcolor="#0d2e2e"];
+
+    docs -> paper; docs -> fuzz; docs -> tla;
+    fuzz -> tie [color="#f0883e"];
+    tie -> fix [color="#d29922"];
+    fix -> r1; fix -> r2;
+    tla -> r2;
+    paper -> r2 [style=dashed, label="SERIAL switch:\none computation\nat a time"];
+    r1 -> pushed; r2 -> pushed;
+}

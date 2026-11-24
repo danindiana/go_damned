@@ -1,6 +1,6 @@
 # Verifying the 2009L guard
 
-*2026-11-24.* Follow-up to [`DEFECT-local-straggler.md`](DEFECT-local-straggler.md).
+*2026-11-24.* Follow-up to [`DEFECT-local-straggler.md`](DEFECT-local-straggler.md). Diagrams: [`diagrams/2026-11-24-verification/`](../diagrams/2026-11-24-verification/).
 
 The defect report showed the `2009` guard, as reconstructed in `Damned.go`, committing spikes the sequential simulation does not produce, and proposed `2009L`. Its evidence was a handful of hand-built scenarios run a few hundred times each. This note adds three checks and one fix:
 

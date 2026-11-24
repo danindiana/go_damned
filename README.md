@@ -265,6 +265,7 @@ Spikes are listed as `[time neuron]`. In `cancel` only the three stimulated sour
 │   ├── results/                    # raw output of result runs
 │   └── diagrams/witness/           # 2026-09-05 witness and defect diagrams
 ├── diagrams/               # architecture and guard diagrams
+│   └── 2026-11-24-verification/  # how 2009L was checked (8 diagrams)
 ├── analysis/               # diagrams 01-07, 12-13: how the algorithm works
 ├── proofs/                 # diagrams 08-11: correctness argument for 2006 vs 2009
 ├── formal-verification/    # TLA+ model (DamnedFull2.tla) and TLC results

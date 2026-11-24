@@ -1,0 +1,27 @@
+digraph paper_algorithm3 {
+    graph [bgcolor="#0d1117", rankdir=TB, fontname="Helvetica", fontcolor="#e6edf3",
+           labelloc="t", fontsize=20, nodesep=0.4, ranksep=0.5,
+           label="The 2009 paper's processing rule, read both ways\nRead from a text extraction of the PDF: confirm symbols against the printed page\n "];
+    node  [fontname="Helvetica", fontcolor="#e6edf3", color="#30363d", style="filled,rounded",
+           shape=box, penwidth=2, margin="0.25,0.18", fillcolor="#161b22", fontsize=12];
+    edge  [color="#8b949e", fontname="Helvetica", fontcolor="#adbac7", penwidth=1.6, arrowsize=0.9, fontsize=10];
+
+    rule [label="Algorithm 3 (EANN 2009): process event with date de if\ntp_i = de,  or  clock_sent[j] and de ≤ |te_j| + δmin for 0 < j < P,  or  te_j = 0\n(index range as printed; no explicit j ≠ i)", color="#39c5cf", fillcolor="#0d2e2e", fontsize=12];
+
+    r1 [label="Reading A: j excludes this processor\n→ no local term at all\n≈ the reconstruction's 2009 guard", color="#d29922", fillcolor="#1f2937"];
+    r2 [label="Reading B: j includes this processor\n→ local term: de ≤ |te_i| + δmin", color="#d29922", fillcolor="#1f2937"];
+
+    ex [label="fanin-local: local inhibitor forecast at te_i = 1, δmin = 1\ntarget's event at de = 2\n2 ≤ 1 + 1 → ADMITTED\nbut the −4 lands at exactly t = 2 and must come first", color="#f0883e"];
+
+    l [label="2009L uses a strict <\n2 < 1 + 1 is false → blocked", color="#58a6ff", fillcolor="#13294d"];
+
+    verdict [label="Neither reading prevents the race.\nThe paper's te / de conventions are too loose to settle it from text alone:\nnext step is a literal implementation of Algorithms 2 and 3", shape=note, color="#bc8cff", fontsize=11];
+
+    rule -> r1; rule -> r2;
+    r1 -> ex [label="race"]; r2 -> ex [label="race at the\nboundary"];
+    ex -> l [color="#58a6ff"];
+    ex -> verdict [style=dashed];
+
+    also [label="Paper also says: inhibitory events at a time step are computed\nbefore excitatory ones, and CPC processes one event at a time.\nTLC with one-at-a-time processing still finds the 2009 failure.", shape=note, color="#8b949e", fontsize=11];
+    r2 -> also [style=invis];
+}

@@ -1,0 +1,39 @@
+digraph verification_pipeline {
+    graph [bgcolor="#0d1117", rankdir=LR, fontname="Helvetica", fontcolor="#e6edf3",
+           labelloc="t", fontsize=20, nodesep=0.35, ranksep=0.55,
+           label="Two independent checks against one reference: the correct spike train\n "];
+    node  [fontname="Helvetica", fontcolor="#e6edf3", color="#30363d", style="filled,rounded",
+           shape=box, penwidth=2, margin="0.25,0.18", fillcolor="#161b22", fontsize=12];
+    edge  [color="#8b949e", fontname="Helvetica", fontcolor="#adbac7", penwidth=1.6, arrowsize=0.9, fontsize=10];
+
+    ref [label="Sequential reference\ntime → inhibitory first → source neuron\n(sequentialEDS in Go, truth() in gen.py)", color="#3fb950", fillcolor="#1f2937"];
+
+    subgraph cluster_go {
+        label="Go engine: samples interleavings"; fontcolor="#58a6ff"; color="#58a6ff"; style="rounded";
+        rnd   [label="randCase\n3–6 neurons, 2–4 processors\nsigned weights, delays 1–3", color="#58a6ff"];
+        run   [label="runOnce × 15\ngoroutine per processor\nzero latency", color="#58a6ff", fillcolor="#13294d"];
+        cmp   [label="spike train ==\nreference?", shape=diamond, color="#58a6ff", style="filled", fillcolor="#13294d"];
+        shr   [label="shrink: drop synapses and\nstimuli while still failing", color="#f0883e"];
+        rnd -> run -> cmp;
+        cmp -> shr [label="no", color="#f0883e"];
+    }
+
+    subgraph cluster_tla {
+        label="TLA+ model: every interleaving of one network"; fontcolor="#bc8cff"; color="#bc8cff"; style="rounded";
+        gen  [label="gen.py\nnamed + random networks\nwrites DW_*.tla with Truth", color="#bc8cff"];
+        tmpl [label="DamnedWeighted.tla.tmpl\npotentials, signed weights,\nFIFO channels, bounds", color="#bc8cff"];
+        tlc  [label="TLC × 4 variants\n2009 / 2009L\nconcurrent / one at a time", color="#bc8cff"];
+        inv  [label="NoWrongSpike\nCompleteAtEnd\nno deadlock", color="#bc8cff"];
+        tmpl -> gen -> tlc -> inv;
+    }
+
+    ref -> cmp [label="Go", color="#3fb950"];
+    ref -> gen [label="same rules,\nre-implemented", color="#3fb950"];
+
+    out1 [label="fuzz_test.go\nTestFuzz2009L / TestFuzz2009Finds", color="#d29922", fillcolor="#1f2937"];
+    out2 [label="random/summary.txt\nresults/*.out (with traces)", color="#d29922", fillcolor="#1f2937"];
+    cmp -> out1; shr -> out1; inv -> out2;
+
+    caveat [label="Neither is a proof for all networks:\nGo samples orderings; TLC covers all orderings\nof small fixed networks, stimuli present from the start,\nchannels ≤ 3 messages", shape=note, color="#8b949e", fontsize=11];
+    out2 -> caveat [style=dotted, arrowhead=none];
+}

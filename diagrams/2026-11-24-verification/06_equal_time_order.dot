@@ -1,0 +1,32 @@
+digraph equal_time_order {
+    graph [bgcolor="#0d1117", rankdir=TB, fontname="Helvetica", fontcolor="#e6edf3",
+           labelloc="t", fontsize=20, nodesep=0.45, ranksep=0.45,
+           label="The second finding: same-time excitatory impacts do not commute\n "];
+    node  [fontname="Helvetica", fontcolor="#e6edf3", color="#30363d", style="filled,rounded",
+           shape=box, penwidth=2, margin="0.25,0.18", fillcolor="#161b22", fontsize=12];
+    edge  [color="#8b949e", fontname="Helvetica", fontcolor="#adbac7", penwidth=1.6, arrowsize=0.9, fontsize=10];
+
+    s [label="N0 (threshold 2) receives +1 from N2 and +2 from N4, both at t = 3\nA neuron resets to 0 when it fires", color="#39c5cf", fillcolor="#0d2e2e"];
+
+    subgraph cluster_a {
+        label="Order A: +1 then +2"; fontcolor="#3fb950"; color="#3fb950"; style="rounded";
+        a1 [label="0 → 1 → 3: fires, reset to 0", color="#3fb950"];
+        a2 [label="t = 8: +1 → 1\nno spike", color="#3fb950"];
+        a1 -> a2;
+    }
+    subgraph cluster_b {
+        label="Order B: +2 then +1"; fontcolor="#f0883e"; color="#f0883e"; style="rounded";
+        b1 [label="0 → 2: fires, reset to 0\nthen +1 → leftover 1", color="#f0883e"];
+        b2 [label="t = 8: +1 → 2\nEXTRA spike", color="#f0883e"];
+        b1 -> b2;
+    }
+    s -> a1; s -> b1;
+
+    gap [label="The 2009 paper fixes only inhibitory-before-excitatory.\nReference used creation order; engine used arrival order.\nResult: 5 of 8,000 random networks diverged under 2009L", color="#d29922", fillcolor="#1f2937"];
+    a2 -> gap [style=dashed]; b2 -> gap [style=dashed];
+
+    fix [label="Fix: order equal-time impacts by\n(stamp, inhibitory first, source neuron), stimuli first\nin sequentialEDS, cmQueue.pop and the TLA+ model", color="#58a6ff", fillcolor="#13294d"];
+    why [label="Why the engine can honour it under 2009L:\nan event at stamp s is integrated only once nothing at or before s\ncan still arrive (peers or local forecasts),\nso every impact at s is already queued", color="#58a6ff"];
+    after [label="Same 8,000 networks after the fix\n2009L: 0 diverged\nregression: TestEqualStampOrder2009L", color="#3fb950", fillcolor="#1f2937"];
+    gap -> fix -> why -> after;
+}

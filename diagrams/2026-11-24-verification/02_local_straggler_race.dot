@@ -1,0 +1,39 @@
+digraph local_straggler_race {
+    graph [bgcolor="#0d1117", rankdir=TB, fontname="Helvetica", fontcolor="#e6edf3",
+           labelloc="t", fontsize=20, nodesep=0.4, ranksep=0.45,
+           label="The smallest 2009 failure: two neurons on one processor\n(found by the random search, confirmed by TLC with one computation at a time)\n "];
+    node  [fontname="Helvetica", fontcolor="#e6edf3", color="#30363d", style="filled,rounded",
+           shape=box, penwidth=2, margin="0.25,0.18", fillcolor="#161b22", fontsize=12];
+    edge  [color="#8b949e", fontname="Helvetica", fontcolor="#adbac7", penwidth=1.6, arrowsize=0.9, fontsize=10];
+
+    setup [label="Processor 2 holds N1 and N2 (threshold 2)\nN1 → N2: weight −4, delay 2\nStimuli: N1 +2 at t=0,  N2 +2 at t=2", color="#39c5cf", fillcolor="#0d2e2e"];
+
+    subgraph cluster_truth {
+        label="Correct (sequential reference)"; fontcolor="#3fb950"; color="#3fb950"; style="rounded";
+        t1 [label="t=0  N1 fires", color="#3fb950"];
+        t2 [label="t=2  inhibitory first:\nN2: 0 → −4 → −2", color="#3fb950"];
+        t3 [label="N2 never fires\nspikes: [0 N1]", color="#3fb950", fillcolor="#1f2937"];
+        t1 -> t2 -> t3;
+    }
+
+    subgraph cluster_2009 {
+        label="Guard 2009"; fontcolor="#f85149"; color="#f85149"; style="rounded";
+        a1 [label="N1 fires at t=0\nspike FORECAST, not yet emitted", color="#f85149"];
+        a2 [label="Next queued event: N2 stimulus, t=2\ngate checks only PEER bounds → allowed", color="#f85149"];
+        a3 [label="N2: 0 → +2 → fires at t=2", color="#f85149"];
+        a4 [label="N1 emitted; −4 reaches N2 at t=2\ntoo late: N2 already fired", color="#f85149"];
+        a5 [label="committed: [0 N1] [2 N2]\nWRONG", color="#f85149", fillcolor="#3d1214"];
+        a1 -> a2 -> a3 -> a4 -> a5;
+    }
+
+    subgraph cluster_2009L {
+        label="Guard 2009L"; fontcolor="#58a6ff"; color="#58a6ff"; style="rounded";
+        b1 [label="N1 fires at t=0\nspike forecast at stamp 0", color="#58a6ff"];
+        b2 [label="N2 stimulus t=2: also needs\n2 < earliest local forecast + dmin = 0 + 2\nFALSE → blocked", color="#58a6ff", fillcolor="#13294d"];
+        b3 [label="N1 emitted; −4 queued for t=2\ninhibitory first: N2 → −4 → −2", color="#58a6ff"];
+        b4 [label="committed: [0 N1]\ncorrect", color="#58a6ff", fillcolor="#13294d"];
+        b1 -> b2 -> b3 -> b4;
+    }
+
+    setup -> t1; setup -> a1; setup -> b1;
+}

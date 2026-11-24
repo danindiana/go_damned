@@ -1,0 +1,22 @@
+digraph open_questions {
+    graph [bgcolor="#0d1117", rankdir=LR, fontname="Helvetica", fontcolor="#e6edf3",
+           labelloc="t", fontsize=20, nodesep=0.35, ranksep=0.6,
+           label="What is still open\n "];
+    node  [fontname="Helvetica", fontcolor="#e6edf3", color="#30363d", style="filled,rounded",
+           shape=box, penwidth=2, margin="0.25,0.18", fillcolor="#161b22", fontsize=12];
+    edge  [color="#8b949e", fontname="Helvetica", fontcolor="#adbac7", penwidth=1.6, arrowsize=0.9, fontsize=10];
+
+    now [label="Today\n2009L: 0 failures by every method\non the networks checked", color="#3fb950", fillcolor="#1f2937"];
+
+    subgraph cluster_open {
+        label="Next steps"; fontcolor="#bc8cff"; color="#bc8cff"; style="rounded,dashed";
+        q1 [label="1. Literal 2009 guard\nimplement Algorithms 2 and 3 as written;\nsettles paper vs reconstruction", color="#bc8cff"];
+        q2 [label="2. Proof for all networks\ninductive invariant (TLAPS / Apalache)\nor a paper proof of the horizon", color="#bc8cff"];
+        q3 [label="3. Richer model\nstimuli arriving over time,\nlarger channel capacities, liveness", color="#bc8cff"];
+        q4 [label="4. Blackhole port\nper-pair message ordering on the NoC:\nUNVERIFIED, ask Tenstorrent", color="#f0883e"];
+    }
+
+    now -> q1; now -> q2; now -> q3; now -> q4;
+    q1 -> q2 [style=dashed, label="if the paper's\nrule differs"];
+    q4 -> q3 [style=dashed, label="if ordering is not\nguaranteed: sequence\nnumbers per link"];
+}

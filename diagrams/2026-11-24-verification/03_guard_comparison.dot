@@ -1,0 +1,32 @@
+digraph guard_comparison {
+    graph [bgcolor="#0d1117", rankdir=LR, fontname="Helvetica", fontcolor="#e6edf3",
+           labelloc="t", fontsize=20, nodesep=0.35, ranksep=0.6,
+           label="What each guard checks before integrating the next event (stamp s)\n "];
+    node  [fontname="Helvetica", fontcolor="#e6edf3", color="#30363d", style="filled,rounded",
+           shape=box, penwidth=2, margin="0.25,0.18", fillcolor="#161b22", fontsize=12];
+    edge  [color="#8b949e", fontname="Helvetica", fontcolor="#adbac7", penwidth=1.6, arrowsize=0.9, fontsize=10];
+
+    ev [label="Next event\nstamp s", color="#39c5cf", fillcolor="#0d2e2e"];
+
+    subgraph cluster_sources {
+        label="Where an earlier impact could still come from"; fontcolor="#bc8cff"; color="#bc8cff"; style="rounded,dashed";
+        remote [label="A PEER processor\n(in flight, or not yet sent)", color="#bc8cff"];
+        local  [label="THIS processor\nforecast spike not yet emitted,\nor a computation still running", color="#bc8cff"];
+    }
+
+    g2006  [label="2006\nshortcut disjuncts\n(peer may look idle)", color="#f85149"];
+    g2009  [label="2009\ns < every peer's bound", color="#d29922", fillcolor="#1f2937"];
+    g2009L [label="2009L\ns < every peer's bound\nAND s < earliest local\nforecast / running + dmin", color="#58a6ff", fillcolor="#13294d"];
+
+    ev -> g2006; ev -> g2009; ev -> g2009L;
+
+    g2006 -> remote [label="misses", color="#f85149", fontcolor="#f85149"];
+    g2006 -> local  [label="misses", color="#f85149", fontcolor="#f85149"];
+    g2009 -> remote [label="covers", color="#3fb950", fontcolor="#3fb950"];
+    g2009 -> local  [label="misses", color="#f85149", fontcolor="#f85149"];
+    g2009L -> remote [label="covers", color="#3fb950", fontcolor="#3fb950"];
+    g2009L -> local  [label="covers", color="#3fb950", fontcolor="#3fb950"];
+
+    note [label="2009 and 2009L also require, before EMITTING a spike, that nothing\nlocal on that neuron is pending (localClear; 2006 uses it as a\nshortcut to allow emission). That check runs too late to undo\nan integration done in the wrong order.", shape=note, color="#8b949e", fontsize=11];
+    local -> note [style=dotted, arrowhead=none];
+}
