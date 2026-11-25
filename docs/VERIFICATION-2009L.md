@@ -17,6 +17,7 @@ The defect report showed the `2009` guard, as reconstructed in `Damned.go`, comm
 | Random networks, Go engine (8,000 networks, 15 runs each) | 39 of 8,000 diverged | 0 of 8,000 (after the equal-time fix, section 2.1) |
 | TLA+, five named networks, every interleaving | wrong spike in 3 of 5 | no violation, no deadlock in 5 of 5 |
 | TLA+, random networks, every interleaving | wrong spike in 1 of 120 | no violation, no deadlock in 120 of 120 |
+| TLA+, the paper's rule in three readings (section 1.1) | as printed (`≤`): wrong spikes, even from remote inhibitors | only with own clock and strict `<`: no violation (= `2009L` one at a time) |
 
 Read the `2009L` column at its actual strength. The Go search samples interleavings. TLC covers every interleaving, but only of the specific small networks it was given, under the simplifications listed below. Neither is a proof for all networks.
 
@@ -75,7 +76,17 @@ The emission rule is left as in the model (`localClear` plus a strict peer check
 
 `2009P1` and `2009P2` fail with one computation at a time as well. `2009P3` fails only when several computations run at once, because it ignores computations still running; `2009L` adds exactly that.
 
-The same three readings over the 120 random networks (one at a time) are running; counts will be added here.
+Over the 120 random networks of section 3 (the same networks, regenerated from the same seed), one computation at a time, as in the paper:
+
+| Guard | No violation | Wrong spike |
+|---|---|---|
+| `2009P1` (reading A, `≤`) | 114 | **6** |
+| `2009P2` (reading B, `≤`) | 116 | **4** |
+| `2009P3` (reading B, `<`) | 120 | 0 |
+| `2009` (reconstruction), for comparison | 119 | **1** |
+| `2009L`, for comparison | 120 | 0 |
+
+No run deadlocked or was cut short. One line per network: [`../formal-verification/weighted/random_paper/summary.txt`](../formal-verification/weighted/random_paper/summary.txt).
 
 **What this settles.** The paper's processing rule is correct, in this model, only under one reading: the task's own clock is included in the check (reading B), *and* the paper's clock convention makes its printed `≤` behave as a strict `<`. That reading is `2009P3`, which with one computation at a time is the same rule as `2009L`. Under any other reading the rule lets late spikes through: with `≤` taken at face value, even spikes from another processor (the `cancel` network); with the task's own clock left out, the local late spikes this report is about. Whether the published algorithm is correct therefore turns on two details of notation the extracted text cannot show: the `j` range and the `te` convention. The printed page, or the authors, can answer both.
 

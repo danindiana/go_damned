@@ -8,6 +8,7 @@
   [![Go 1.22+](https://img.shields.io/badge/go-1.22+-00ADD8?style=flat-square&logo=go&labelColor=0d1117)](https://golang.org/)
   [![MIT License](https://img.shields.io/badge/license-MIT-green?style=flat-square&labelColor=0d1117)](LICENSE)
   [![Paper](https://img.shields.io/badge/paper-Mouraud%202006%2F2009-blue?style=flat-square&labelColor=0d1117)](#references)
+  [![ci](https://github.com/danindiana/go_damned/actions/workflows/ci.yml/badge.svg)](https://github.com/danindiana/go_damned/actions/workflows/ci.yml)
 
   A runnable reconstruction, in Go, of the event-driven spiking neural network (SNN) simulator described in the 2006 and 2009 DAMNED papers, used to test whether its synchronization guards produce exactly the spikes a sequential simulation would.
 
@@ -19,22 +20,44 @@ DAMNED (Mouraud, Puzenat and Paugam-Moisy) simulates spiking neural networks acr
 
 `go_damned` runs the algorithm with one goroutine per processor, then compares every run's spike train against a sequential reference simulation. It is a **single-process concurrent simulator**: goroutines and channels emulate processors and links. It is not a distributed runtime.
 
+## At a glance
+
+- **Both published guards let wrong spikes through.** The 2006 guard misses late spikes from other processors. The 2009 guard, as reconstructed here, misses late spikes from the processor's own pending work.
+- **A corrected guard, `2009L`, has produced no wrong spike in any check:** hand-built scenarios, 8,000 random networks in Go, and every possible interleaving of 125 small networks in a TLA+ model. That is strong evidence, not yet a proof for all networks.
+- **Whether the 2009 paper itself has the bug depends on two details of notation** that the available text cannot settle. Under the one reading that works, the paper's rule is `2009L` for one-event-at-a-time processing.
+- **It matters most on fast on-chip interconnects:** link latency hides the 2009 defect, and low latency exposes it.
+
+Every push is checked automatically (`go vet`, `go test`, the race detector, and TLC on the named networks).
+
 ## Findings
 
 1. **The 2006 guard is unsound.** Reproduced: it commits spikes that should have been cancelled (`cancel`: 156 of 300 runs wrong on 2026-11-24).
 2. **The 2009 guard, as reconstructed here, is also unsound.** Its computation gate checks only *peer* bounds and never this processor's own un-emitted spikes. A four-neuron counterexample (`fanin-local`: inhibitor on the same processor as its target, excitation remote) produces a spike the sequential simulation does not. The late local impact can also be excitatory, giving a spike at the wrong time or a duplicate: of 41 failures in a random search, 39 involved a local inhibitory synapse and 2 only a local excitatory one. Details: [`docs/DEFECT-local-straggler.md`](docs/DEFECT-local-straggler.md).
-3. **A corrected guard, `2009L`, adds the missing local bound.** It has had zero wrong runs in every test: the hand-built scenarios, a random-network search, and a TLA+ model checked over every interleaving of a set of small networks. That is strong evidence, not a proof for all networks. Details: [`docs/VERIFICATION-2009L.md`](docs/VERIFICATION-2009L.md).
+3. **A corrected guard, `2009L`, adds the missing local bound.** It has had zero wrong runs in every test: the hand-built scenarios, 0 of 8,000 random networks in Go (where `2009` failed on 39), and no violation or deadlock over every interleaving of 5 named and 120 random networks in TLA+ (where `2009` failed on 4). That is strong evidence, not a proof for all networks. Details: [`docs/VERIFICATION-2009L.md`](docs/VERIFICATION-2009L.md).
 4. **The built-in soundness flag misses this class of error.** It reported 0 in every `2009` failure. The spike-train comparison against the sequential simulation caught all of them, so that comparison is the correctness criterion here.
 5. **The original TLA+ model cannot see it; a new one can.** The original model's 2009 gate has the same blind spot, its exactness invariant is the same commit-time check as the flag, and it has no synaptic weights ([defect report, section 7](docs/DEFECT-local-straggler.md#7-consequences-for-the-tla-model)). A new model with real neurons, in [`formal-verification/weighted/`](formal-verification/weighted/), finds the 2009 failure, including when each processor computes one event at a time as the 2009 paper describes, and finds no violation under `2009L`.
 6. **Low latency exposes the defect; latency hides it.** With 1 ms of simulated link latency, `2009` passes `fanin-local` in 300 of 300 runs; with none it fails. Tightly coupled, low-latency interconnects (an on-chip mesh rather than an MPI cluster) are therefore the regime where this matters most.
-7. **A fixed-size spiking network computes an NC¹-complete function.** The `word` scenario tracks products in the symmetric group S5 (its word problem is NC¹-complete, by Barrington's theorem) with 364 neurons and 1,080 synapses at every word length, and depth 2n. Under `2009L` it returned the correct product in every run. Under `2009` it returned the wrong product in up to 44% of runs. Details: [`docs/WITNESS_REPORT.md`](docs/WITNESS_REPORT.md).
+7. **A fixed-size spiking network computes an NC¹-complete function.** The `word` scenario tracks products in the symmetric group S5 (its word problem is NC¹-complete, by Barrington's theorem) with 364 neurons and 1,080 synapses at every word length, and depth 2n. Under `2009L` it returned the correct product in every run, up to n = 64 (rerun after today's fixes). Under `2009` it returned the wrong product in up to 44% of runs. Details: [`docs/WITNESS_REPORT.md`](docs/WITNESS_REPORT.md).
 8. **An accounting leak hung the engine on dense networks.** In-flight messages were decremented once per message but incremented once per event. Fixed.
 9. **Equal-time order was under-specified.** A neuron resets when it fires, so two excitatory impacts at the same stamp do not commute. The paper fixes only inhibitory-before-excitatory. Both the reference and the engine now break ties by source neuron; `2009L` guarantees every same-stamp impact has arrived before the first is integrated, so the engine can always honour that order ([verification report, section 2.1](docs/VERIFICATION-2009L.md#21-equal-time-order-a-gap-in-the-specification-now-closed)).
 10. **The published rule holds only under one reading.** Model-checking the 2009 paper's processing rule in each plausible reading: it is correct only if the task's own clock is part of the check and its printed `≤` behaves as a strict `<`, in which case it is `2009L` for one-event-at-a-time processing. Taken at face value, `≤` lets late spikes through even from other processors. Which reading the authors meant cannot be settled from the extracted text ([report, section 1.1](docs/VERIFICATION-2009L.md#11-model-checking-the-papers-rule-roadmap-12)).
 
-### Results, 2026-11-24
+## Results
 
-Wrong runs out of the total, latency 0. Full output: [`docs/results/2026-11-24-sweep.txt`](docs/results/2026-11-24-sweep.txt).
+### Verifying 2009L
+
+| Check | Orderings covered | `2009` | `2009L` |
+|---|---|---|---|
+| Random networks, Go engine (8,000 networks × 15 runs) | sampled | 39 diverged | 0 diverged |
+| TLA+, 5 named networks, concurrent and one at a time | every interleaving | wrong spike in 3 | no violation, no deadlock |
+| TLA+, 120 random networks, concurrent and one at a time | every interleaving | wrong spike in 1 | no violation, no deadlock |
+| S5 witness, n = 64 (50 runs) | sampled | not rerun | 0 wrong |
+
+The paper's own rule, model-checked in three readings over the same networks, is in [verification report, section 1.1](docs/VERIFICATION-2009L.md#11-model-checking-the-papers-rule-roadmap-12): as printed (`≤`), it gave wrong spikes in 6 and 4 of the 120 random networks and even in the remote-inhibitor `cancel` network; only with the processor's own clock included and a strict `<` did it give none. The same results as diagrams: [`diagrams/2026-11-24-verification/`](diagrams/2026-11-24-verification/).
+
+### Hand-built scenarios, 2026-11-24
+
+Wrong runs out of the total, latency 0. Full output: [`docs/results/2026-11-24-sweep.txt`](docs/results/2026-11-24-sweep.txt). These runs predate the equal-time order fix, which changes no verdict here.
 
 | Scenario | 2006 | 2009 | 2009L |
 |---|---|---|---|
@@ -169,6 +192,10 @@ if selfB < INF && !(top < selfB + e.dmin) { ok = false }
 
 The blocking forecast can always drain, so this cannot deadlock (argument in the [defect report, section 4](docs/DEFECT-local-straggler.md#4-fix)).
 
+### The paper's own rule (model only)
+
+The TLA+ model also has the 2009 paper's processing rule (Algorithm 3) in three readings, `2009P1` to `2009P3`, because the extracted text leaves two details open: whether the check includes the processor's own clock, and whether its printed `≤` is meant as `<`. These guards exist only in the model, not in the Go engine. See [verification report, section 1.1](docs/VERIFICATION-2009L.md#11-model-checking-the-papers-rule-roadmap-12).
+
 ![Emission Guard Flow](diagrams/emission_guard_flow.png)
 
 ## Usage
@@ -186,11 +213,26 @@ go build -o damned .
 ./damned -trace=trace.json                 # JSON trace for examples/viz.html
 ./damned -runtrace=run.trace               # Go runtime trace; open with: go tool trace run.trace
 
-go test -v .                               # 2009L checks: cancel, ring, fanin-local, S5 witness (~10 s)
-go test -race .                            # same, with the race detector
+go test -v .                               # 2009L checks plus a 400-network random search (~1 min)
+go test -race -run 'Test(Cancel|Ring|FaninLocal|WordWitness|WordSize|EqualStamp)' .
 ```
 
-The tests check that `2009L` matches the sequential reference and that the S5 network computes the right product at a fixed size. They do not assert that `2006` or `2009` fail, since that depends on scheduling; run the binary for those.
+The tests check that `2009L` matches the sequential reference on the hand-built scenarios and 400 random networks, and that the S5 network computes the right product at a fixed size. They do not assert that `2006` or `2009` fail, since that depends on scheduling; run the binary for those.
+
+Longer checks:
+
+```bash
+# Random search, 8,000 networks per guard (~35 min)
+FUZZ_CASES=8000 FUZZ_REPS=15 FUZZ_SEED=11 go test -run TestFuzz -v -timeout 4h .
+
+# Shrink and classify every 2009 failure (~20 min)
+FUZZ_CLASSIFY=1 FUZZ_CASES=8000 FUZZ_REPS=15 FUZZ_SEED=11 go test -run TestFuzzClassify2009 -v -timeout 4h .
+
+# Model-check with TLC (needs Java and tla2tools.jar)
+cd formal-verification/weighted
+python3 gen.py && ./run_tlc.sh /path/to/tla2tools.jar .              # named networks, every guard
+python3 gen.py --random 120 2026 && ./run_tlc.sh /path/to/tla2tools.jar random
+```
 
 ### Flags
 
@@ -257,20 +299,22 @@ Spikes are listed as `[time neuron]`. In `cancel` only the three stimulated sour
 ├── fanin.go                # fanin and fanin-local scenarios
 ├── witness_group.go        # S5/Z120 word-problem network and driver
 ├── damned_test.go          # go test: 2009L exactness and witness checks
-├── fuzz_test.go            # go test: random-network search, with shrinking
+├── fuzz_test.go            # go test: random-network search, shrinking, failure classifier
 ├── go.mod
+├── .github/workflows/ci.yml        # vet, tests, race detector, TLC on every push
 ├── docs/
 │   ├── DEFECT-local-straggler.md   # the 2009 defect, counterexample and fix
 │   ├── VERIFICATION-2009L.md       # paper reading, random search, model checking
 │   ├── WITNESS_REPORT.md           # the word-problem witness
-│   ├── results/                    # raw output of result runs
+│   ├── results/                    # raw output: sweeps, n = 64 rerun, failure classification
 │   └── diagrams/witness/           # 2026-09-05 witness and defect diagrams
 ├── diagrams/               # architecture and guard diagrams
-│   └── 2026-11-24-verification/  # how 2009L was checked (8 diagrams)
+│   └── 2026-11-24-verification/  # how 2009L was checked (9 diagrams)
 ├── analysis/               # diagrams 01-07, 12-13: how the algorithm works
 ├── proofs/                 # diagrams 08-11: correctness argument for 2006 vs 2009
 ├── formal-verification/    # TLA+ model (DamnedFull2.tla) and TLC results
-│   └── weighted/           # TLA+ model with real neurons; generator and runner
+│   └── weighted/           # TLA+ model with real neurons: guards 2009, 2009L and the
+│                           #   paper readings 2009P1-P3; generator, runner, results
 ├── reference/              # earlier TLA+ models and Python reference
 ├── examples/               # earlier single-file version, sample traces, viz.html
 ├── notes/2026-09-05/       # archived working notes

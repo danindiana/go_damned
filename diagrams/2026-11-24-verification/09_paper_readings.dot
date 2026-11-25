@@ -1,0 +1,41 @@
+digraph paper_readings {
+    graph [bgcolor="#0d1117", fontname="Helvetica", fontcolor="#e6edf3",
+           labelloc="t", fontsize=20,
+           label="The 2009 paper's processing rule, model-checked in three readings\nTLA+ model, every interleaving; wrong spike = a committed spike the correct train does not contain\n "];
+    node  [fontname="Helvetica", fontcolor="#e6edf3", shape=plaintext];
+
+    t [label=<
+<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="9" COLOR="#30363d" BGCOLOR="#161b22">
+  <TR>
+    <TD BGCOLOR="#0d2e2e"><FONT COLOR="#39c5cf"><B>Guard</B></FONT></TD>
+    <TD BGCOLOR="#0d2e2e"><FONT COLOR="#39c5cf"><B>Other tasks</B></FONT></TD>
+    <TD BGCOLOR="#0d2e2e"><FONT COLOR="#39c5cf"><B>Own forecasts</B></FONT></TD>
+    <TD BGCOLOR="#0d2e2e"><FONT COLOR="#39c5cf"><B>cancel<BR/>(remote inhibitor)</B></FONT></TD>
+    <TD BGCOLOR="#0d2e2e"><FONT COLOR="#39c5cf"><B>3 local late-spike<BR/>networks</B></FONT></TD>
+    <TD BGCOLOR="#0d2e2e"><FONT COLOR="#39c5cf"><B>120 random networks<BR/>(wrong spike in)</B></FONT></TD>
+  </TR>
+  <TR>
+    <TD ALIGN="LEFT">2009P1: reading A, as printed</TD><TD>≤</TD><TD>not checked</TD>
+    <TD><FONT COLOR="#f85149">wrong spike</FONT></TD><TD><FONT COLOR="#f85149">wrong spike</FONT></TD><TD><FONT COLOR="#f85149">6 of 120</FONT></TD>
+  </TR>
+  <TR>
+    <TD ALIGN="LEFT">2009P2: reading B, as printed</TD><TD>≤</TD><TD>≤</TD>
+    <TD><FONT COLOR="#f85149">wrong spike</FONT></TD><TD><FONT COLOR="#f85149">wrong spike</FONT></TD><TD><FONT COLOR="#f85149">4 of 120</FONT></TD>
+  </TR>
+  <TR>
+    <TD ALIGN="LEFT">2009 (reconstruction)</TD><TD>&lt;</TD><TD>not checked</TD>
+    <TD><FONT COLOR="#3fb950">correct</FONT></TD><TD><FONT COLOR="#f85149">wrong spike</FONT></TD><TD><FONT COLOR="#f85149">1 of 120</FONT></TD>
+  </TR>
+  <TR>
+    <TD ALIGN="LEFT">2009P3: reading B, strict</TD><TD>&lt;</TD><TD>&lt;</TD>
+    <TD><FONT COLOR="#3fb950">correct</FONT></TD><TD><FONT COLOR="#3fb950">correct</FONT></TD><TD><FONT COLOR="#3fb950">0 of 120</FONT></TD>
+  </TR>
+  <TR>
+    <TD ALIGN="LEFT"><B>2009L</B></TD><TD>&lt;</TD><TD>&lt; (forecasts and running work)</TD>
+    <TD><FONT COLOR="#3fb950">correct</FONT></TD><TD><FONT COLOR="#3fb950">correct</FONT></TD><TD><FONT COLOR="#3fb950">0 of 120</FONT></TD>
+  </TR>
+  <TR>
+    <TD ALIGN="LEFT" COLSPAN="6"><FONT COLOR="#adbac7" POINT-SIZE="11">All rows: one computation at a time, as in the paper. With several at once, 2009P3 also fails the 3 local networks; 2009L does not.<BR ALIGN="LEFT"/>The paper's rule is correct here only as 2009P3: own clock included AND ≤ acting as strict &lt;. Which reading the authors meant needs the printed page.<BR ALIGN="LEFT"/>Algorithm 3 was read from a text extraction of the PDF; the tp_i = de and te_j = 0 shortcuts are not modelled.<BR ALIGN="LEFT"/></FONT></TD>
+  </TR>
+</TABLE>>];
+}

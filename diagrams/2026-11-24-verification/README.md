@@ -13,6 +13,7 @@ How the `2009L` guard was checked, and what turned up. The full write-up is
 | [`06_equal_time_order`](06_equal_time_order.png) | Why same-time excitatory impacts do not commute, and the tie-break fix |
 | [`07_results_matrix`](07_results_matrix.png) | Final numbers for `2009` and `2009L` across all checks |
 | [`08_open_questions`](08_open_questions.png) | What is still open, including the unverified Blackhole message-ordering question |
+| [`09_paper_readings`](09_paper_readings.png) | The 2009 paper's processing rule model-checked in three readings, against the reconstruction and `2009L` |
 
 Each diagram has a `.dot` source, a `.png` (160 dpi) and an `.svg`. Re-render one with:
 
