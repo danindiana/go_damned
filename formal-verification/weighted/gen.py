@@ -121,6 +121,14 @@ def random_scenarios(k, seed):
     return out
 
 
+# Which guards get .cfg files, and whether only the one-at-a-time variant.
+# Defaults: every guard, both variants. For a run of the paper readings alone:
+#   GUARDS=2009P1,2009P2,2009P3 SERIAL_ONLY=1 python3 gen.py --random 120 2026 random_paper
+import os
+GUARDS = os.environ.get("GUARDS", "2009,2009L,2009P1,2009P2,2009P3").split(",")
+SERIAL_ONLY = bool(os.environ.get("SERIAL_ONLY"))
+
+
 def main():
     import sys
     tmpl = (HERE / "DamnedWeighted.tla.tmpl").read_text()
@@ -129,7 +137,7 @@ def main():
     if len(sys.argv) > 1 and sys.argv[1] == "--random":
         k, seed = int(sys.argv[2]), int(sys.argv[3])
         scen = random_scenarios(k, seed)
-        outdir = HERE / "random"
+        outdir = HERE / (sys.argv[4] if len(sys.argv) > 4 else "random")
         outdir.mkdir(exist_ok=True)
     write(tmpl, scen, outdir)
 
@@ -155,8 +163,8 @@ def write(tmpl, scen, outdir):
         for k, v in defs.items():
             spec = spec.replace("@" + k + "@", v)
         (HERE_ / f"DW_{name}.tla").write_text(spec)
-        for guard in ("2009", "2009L"):
-          for serial in (False, True):
+        for guard in GUARDS:
+          for serial in ((True,) if SERIAL_ONLY else (False, True)):
             suffix = "_serial" if serial else ""
             (HERE_ / f"DW_{name}_{guard}{suffix}.cfg").write_text(
                 f"CONSTANTS\n  GUARD = \"{guard}\"\n  MaxChan = 3\n  SERIAL = {'TRUE' if serial else 'FALSE'}\n"

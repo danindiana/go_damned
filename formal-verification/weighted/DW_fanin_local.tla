@@ -67,12 +67,30 @@ Before(e, f) == \/ e.st < f.st
                 \/ e.st = f.st /\ Exc(e) = Exc(f) /\ e.ni =< f.ni
 MinKey(S) == { e \in S : \A f \in S : Before(e, f) }
 
+(* Peer half: kb[p][m] is the earliest impact stamp m can still send, the     *)
+(* model's counterpart of the paper's |te_m| + dmin.                         *)
+PeerLT(p, st) == \A m \in Peers(p) : st < kb[p][m]
+PeerLE(p, st) == \A m \in Peers(p) : st =< kb[p][m]
+
+(* Local half: earliest stamp of this processor's own pending work, + DMIN.  *)
+OwnLT(p, st, S) == IF S = {} THEN TRUE ELSE st < Min(S) + DMIN
+OwnLE(p, st, S) == IF S = {} THEN TRUE ELSE st =< Min(S) + DMIN
+Fc(p)  == { c.st : c \in cp[p] }                       \* forecast, not yet emitted
+FcR(p) == Fc(p) \cup { r.st : r \in running[p] }      \* ... or still computing
+
+(* 2009   : the reconstruction's 2009 gate (peers only, strict).              *)
+(* 2009L  : 2009 plus the local bound over forecasts and running work.        *)
+(* 2009P1 : the paper's Algorithm 3, reading A: other tasks only, <= printed. *)
+(* 2009P2 : reading B: the task's own te_i included, <= as printed.           *)
+(* 2009P3 : reading B with strict < throughout.                                *)
+(* For the P readings te_i is the top EtoE, i.e. forecasts only (the paper    *)
+(* processes one event at a time, so nothing else is "running").              *)
 CompAuth(p, st) ==
-    /\ \A m \in Peers(p) : st < kb[p][m]
-    /\ IF GUARD = "2009L"
-         THEN LET own == { c.st : c \in cp[p] } \cup { r.st : r \in running[p] }
-              IN IF own = {} THEN TRUE ELSE st < Min(own) + DMIN
-         ELSE TRUE
+    CASE GUARD = "2009"   -> PeerLT(p, st)
+      [] GUARD = "2009L"  -> PeerLT(p, st) /\ OwnLT(p, st, FcR(p))
+      [] GUARD = "2009P1" -> PeerLE(p, st)
+      [] GUARD = "2009P2" -> PeerLE(p, st) /\ OwnLE(p, st, Fc(p))
+      [] GUARD = "2009P3" -> PeerLT(p, st) /\ OwnLT(p, st, Fc(p))
 
 LocalClear(p, n, s) == ~ \E e \in cm[p] \cup running[p] : e.nj = n /\ e.st =< s
 

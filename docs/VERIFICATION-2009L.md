@@ -36,7 +36,48 @@ What that implies:
 - **Neither reading of the index range closes the hole.** If `j` excludes the processor itself, the check has no local term at all, which is the reconstruction's `2009`. If it includes the processor, the local term is `de ≤ |te_i| + δmin`. In `fanin-local` the local inhibitor's spike sits at `te_i = 1` with `δmin = 1`, the target's event has `de = 2`, and `2 ≤ 1 + 1` admits it, although the inhibitory impact lands at exactly `t = 2` and must be applied first. The `≤` admits the boundary case that `2009L` excludes with a strict `<`.
 - **The rebuild's concurrency is not the cause.** `Damned.go` lets several computations run at once (one goroutine per neuron), while the paper describes one at a time. The TLA+ model has a switch for this (`SERIAL`). With one computation at a time, `2009` still commits a wrong spike in all three networks where it failed before, and `2009L` still has none (section 3). In the one-at-a-time trace for `fuzz_min`, N1's spike at t = 0 is forecast but not yet emitted when processor 2 integrates N2's stimulus at t = 2; N2 fires; N1's −4 arrives afterwards, too late.
 
-**Conclusion.** The paper's processing rule, read literally, does not prevent this race at the boundary, but the paper's notation for `te` and `de` is not specified tightly enough to settle it from the text alone. A literal implementation of Algorithms 2 and 3 would settle it, and is listed under next steps.
+**Conclusion from the text alone.** The paper's processing rule, read literally, does not prevent this race at the boundary, but its notation for `te` and `de` is not tight enough to settle the question by reading. Section 1.1 settles as much as can be settled by model-checking every plausible reading.
+
+### 1.1 Model-checking the paper's rule (roadmap 1.2)
+
+*Added later on 2026-11-24.* The full text is paywalled at Springer, and the open LIRIS copy could only be read through a text extraction. That extraction gives Algorithm 3 line by line:
+
+```
+1 if (tpi = de) or
+2 (clock sent[j] and (de ≤ |tej | + δmin), 0 <j<P) or (tej = 0)) then
+  tpi ←− de
+3 if (tei = 0) then
+  tei ←− −tpi
+  → processing granted
+else
+4 tpi ←− −de
+  → processing denied
+```
+
+Two things are not settled by the text: whether `j` ranges over the task itself, and whether the paper's clocks make `≤` safe. The paper's EtoP events carry the spike's *emission* date, while the model and `Damned.go` stamp events with their *impact* time, so an off-by-one between the two conventions cannot be ruled out. Rather than guess, the TLA+ model now has the processing rule in each reading as a guard (`formal-verification/weighted/DamnedWeighted.tla.tmpl`). The peer bound `kb[p][m]` (the earliest stamp at which `m`'s future spikes can land) plays the part of `|te_j| + δmin`, and this processor's earliest forecast spike plays `te_i`.
+
+| Guard | Other tasks | The task's own forecasts (`te_i`) | Reading |
+|---|---|---|---|
+| `2009P1` | stamp ≤ their bound | not checked | A, as printed |
+| `2009P2` | stamp ≤ their bound | stamp ≤ earliest forecast + δmin | B, as printed |
+| `2009P3` | stamp < their bound | stamp < earliest forecast + δmin | B, with strict `<` |
+| `2009` (reconstruction) | stamp < their bound | not checked | A, with strict `<` |
+
+The emission rule is left as in the model (`localClear` plus a strict peer check), which is stricter than the paper's Algorithm 2, so any failure below comes from the processing rule. The `tp_i = de` and `te_j = 0` shortcuts are not modelled. Results on the named networks ("one at a time" is the paper's single CPC):
+
+| Network | `2009P1` | `2009P2` | `2009P3`, concurrent | `2009P3`, one at a time |
+|---|---|---|---|---|
+| `cancel` (inhibitor on another processor) | **wrong spike** | **wrong spike** | no violation | no violation |
+| `fanin_local` | **wrong spike** | **wrong spike** | **wrong spike** | no violation |
+| `fuzz_min` | **wrong spike** | **wrong spike** | **wrong spike** | no violation |
+| `mixed` | **wrong spike** | **wrong spike** | **wrong spike** | no violation |
+| `equal_stamp` (no inhibition) | no violation | no violation | no violation | no violation |
+
+`2009P1` and `2009P2` fail with one computation at a time as well. `2009P3` fails only when several computations run at once, because it ignores computations still running; `2009L` adds exactly that.
+
+The same three readings over the 120 random networks (one at a time) are running; counts will be added here.
+
+**What this settles.** The paper's processing rule is correct, in this model, only under one reading: the task's own clock is included in the check (reading B), *and* the paper's clock convention makes its printed `≤` behave as a strict `<`. That reading is `2009P3`, which with one computation at a time is the same rule as `2009L`. Under any other reading the rule lets late spikes through: with `≤` taken at face value, even spikes from another processor (the `cancel` network); with the task's own clock left out, the local late spikes this report is about. Whether the published algorithm is correct therefore turns on two details of notation the extracted text cannot show: the `j` range and the `te` convention. The printed page, or the authors, can answer both.
 
 ## 2. Random-network search (Go)
 
@@ -183,6 +224,6 @@ python3 gen.py --random 120 2026    # random networks -> random/
 
 These are tracked, with the rest of the project's next steps, in the [README roadmap](../README.md#roadmap).
 
-1. Implement Algorithms 2 and 3 of the 2009 paper literally, as a fourth guard, and run the same checks.
+1. ~~Implement the 2009 paper's rule as a fourth guard~~ Done for Algorithm 3 in the TLA+ model, in every plausible reading (section 1.1). Still open: confirm the `j` range and the `te` convention against the printed page, and model Algorithm 2's shortcuts.
 2. Prove the `2009L` gate sound for all networks, rather than checking instances: either an inductive invariant checked with TLAPS or Apalache, or a paper proof of the form "no impact can arrive below the gate's horizon".
 3. Model the environment process sending stimuli over time, and check with larger channel capacities.

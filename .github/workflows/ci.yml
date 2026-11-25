@@ -38,6 +38,11 @@ jobs:
           if grep -E ' 2009L(_serial)? ' summary.txt | grep -v ' OK '; then
             echo "2009L failed a named network"; exit 1
           fi
+          # The paper's rule read with its own forecasts and strict < (2009P3), one
+          # event at a time, must also pass every named network.
+          if grep -E ' 2009P3_serial ' summary.txt | grep -v ' OK '; then
+            echo "2009P3 (one at a time) failed a named network"; exit 1
+          fi
           # 2009 must still fail the three local-inhibitor networks (the checks have teeth).
           for n in fanin_local fuzz_min mixed; do
             grep -q "DW_${n} 2009 VIOLATION" summary.txt || { echo "2009 no longer fails ${n}"; exit 1; }
