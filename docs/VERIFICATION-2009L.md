@@ -37,7 +37,7 @@ What that implies:
 - **Neither reading of the index range closes the hole.** If `j` excludes the processor itself, the check has no local term at all, which is the reconstruction's `2009`. If it includes the processor, the local term is `de ≤ |te_i| + δmin`. In `fanin-local` the local inhibitor's spike sits at `te_i = 1` with `δmin = 1`, the target's event has `de = 2`, and `2 ≤ 1 + 1` admits it, although the inhibitory impact lands at exactly `t = 2` and must be applied first. The `≤` admits the boundary case that `2009L` excludes with a strict `<`.
 - **The rebuild's concurrency is not the cause.** `Damned.go` lets several computations run at once (one goroutine per neuron), while the paper describes one at a time. The TLA+ model has a switch for this (`SERIAL`). With one computation at a time, `2009` still commits a wrong spike in all three networks where it failed before, and `2009L` still has none (section 3). In the one-at-a-time trace for `fuzz_min`, N1's spike at t = 0 is forecast but not yet emitted when processor 2 integrates N2's stimulus at t = 2; N2 fires; N1's −4 arrives afterwards, too late.
 
-**Conclusion from the text alone.** The paper's processing rule, read literally, does not prevent this race at the boundary, but its notation for `te` and `de` is not tight enough to settle the question by reading. Section 1.1 settles as much as can be settled by model-checking every plausible reading.
+**Conclusion from the text alone.** The paper's processing rule, read literally, does not prevent this race at the boundary, but its notation for `te` and `de` is not tight enough to settle the question by reading. Section 1.1 settles as much as can be settled by model-checking three readings.
 
 ### 1.1 Model-checking the paper's rule (roadmap 1.2)
 
@@ -235,6 +235,6 @@ python3 gen.py --random 120 2026    # random networks -> random/
 
 These are tracked, with the rest of the project's next steps, in the [README roadmap](../README.md#roadmap).
 
-1. ~~Implement the 2009 paper's rule as a fourth guard~~ Done for Algorithm 3 in the TLA+ model, in every plausible reading (section 1.1). Still open: confirm the `j` range and the `te` convention against the printed page, and model Algorithm 2's shortcuts.
+1. ~~Implement the 2009 paper's rule as a fourth guard~~ Done for Algorithm 3 in the TLA+ model, in three readings (section 1.1). Still open: confirm the `j` range and the `te` convention against the printed page, and model Algorithm 2's shortcuts.
 2. Prove the `2009L` gate sound for all networks, rather than checking instances: either an inductive invariant checked with TLAPS or Apalache, or a paper proof of the form "no impact can arrive below the gate's horizon".
 3. Model the environment process sending stimuli over time, and check with larger channel capacities.
