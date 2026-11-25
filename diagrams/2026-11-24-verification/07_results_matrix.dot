@@ -36,7 +36,7 @@ digraph results_matrix {
     <TD><FONT COLOR="#3fb950">no violation, no deadlock</FONT></TD>
   </TR>
   <TR>
-    <TD ALIGN="LEFT" COLSPAN="4"><FONT COLOR="#adbac7" POINT-SIZE="11">Every 2009 failure examined (all TLA+ counterexamples, the shrunk Go cases) has the same shape: an inhibitor on the same processor as its target.<BR ALIGN="LEFT"/>Strong evidence for 2009L, not a proof for all networks. Details: docs/VERIFICATION-2009L.md<BR ALIGN="LEFT"/></FONT></TD>
+    <TD ALIGN="LEFT" COLSPAN="4"><FONT COLOR="#adbac7" POINT-SIZE="11">A repeat of the Go search found 41 failures (counts vary with scheduling). All 41, and every TLA+ counterexample, need a synapse within one processor:<BR ALIGN="LEFT"/>39 an inhibitory one, 2 only an excitatory one.<BR ALIGN="LEFT"/>Strong evidence for 2009L, not a proof for all networks. Details: docs/VERIFICATION-2009L.md<BR ALIGN="LEFT"/></FONT></TD>
   </TR>
 </TABLE>>];
 }

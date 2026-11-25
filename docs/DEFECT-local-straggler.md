@@ -53,6 +53,13 @@ it *before* the event at `top` — inhibition sorts first at equal stamps — an
 the target does not fire. The distributed engine integrates the excitation
 first and commits a spike that has no counterpart in ground truth.
 
+The late local impact does not have to be inhibitory. If it is excitatory, the
+engine has already integrated a later-stamped event, so the late impact is
+applied out of time order: the target can fire at the wrong stamp, or fire
+twice at one stamp. A classification of every `2009` failure in the long random
+search found 39 of 41 involve a local inhibitory synapse and 2 involve only a
+local excitatory one ([verification report, section 2.2](VERIFICATION-2009L.md#22-classifying-every-2009-failure)).
+
 The emission guard does check `localClear`, but that is the wrong place and the
 wrong quantity: it runs at commit time on events already in `pl.cm`, and by then
 the premature computation has happened.

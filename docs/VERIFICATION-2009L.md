@@ -79,7 +79,35 @@ The same long run, repeated after the fix:
 | `2009` | 8,000 | 15 | **39** |
 | `2009L` | 8,000 | 15 | **0** |
 
-Same seed (11) and networks for both. The smallest `2009` case the shrinker returned from this run has the same shape as before: an inhibitor on the same processor as its target, with the excitation arriving at the same stamp.
+Same seed (11) and networks for both.
+
+### 2.2 Classifying every 2009 failure
+
+To check whether every `2009` failure has the local-inhibitor shape, `TestFuzzClassify2009` reran the same 8,000 networks under `2009`, shrank every failing one, and recorded which synapses the shrunk case still needs. A synapse is *local* if its source and target neurons are on the same processor. This run found 41 failures (39 in the run above; the count depends on scheduling). Full output: [`results/2026-11-24-classify-2009.txt`](results/2026-11-24-classify-2009.txt).
+
+| Synapses the shrunk failure still needs | Failures |
+|---|---|
+| A local inhibitory synapse (and nothing local and excitatory) | 31 |
+| A local inhibitory and a local excitatory synapse | 8 |
+| A local excitatory synapse only, no inhibition at all | **2** |
+| Remote synapses only | 0 |
+
+`2009L` was correct on all 41 shrunk cases (300 runs each).
+
+**The defect is broader than a local inhibitor.** Every failure needs a *local* synapse, and none is explained by remote traffic alone, which is what the `2009` peer check covers. But two need no inhibition. Case 5, shrunk:
+
+```
+P = 3; N1 (threshold 3) on processor 2
+N4 -> N1: +2, delay 2, LOCAL (N4 also on processor 2)
+N2 -> N1: +2, delay 2, remote (N2 on processor 1)
+stimuli: N4 at t = 0, N2 at t = 1
+correct: N1 gets +2 at t = 2 and +2 at t = 3, fires at t = 3
+2009:    N4's spike is forecast but not yet emitted when processor 2 integrates
+         the remote +2 (stamp 3); the local +2 (stamp 2) arrives afterwards and
+         N1 fires stamped t = 2: right neuron, wrong time
+```
+
+The other (case 15) ends with a neuron firing twice at the same stamp. Both are the same race as before: an impact from a spike forecast on the same processor arrives after a later-stamped event has been integrated. When the late impact is inhibitory the result is an extra spike; when it is excitatory, a spike at the wrong time or a duplicate. `2009L` blocks the integration in every case, because its local bound is taken over every forecast and running computation, whatever its sign.
 
 Run it yourself:
 
@@ -148,7 +176,7 @@ python3 gen.py --random 120 2026    # random networks -> random/
 
 ## What this establishes, and what it does not
 
-- **Established:** the `2009` computation gate, as reconstructed, admits wrong spikes whenever an inhibitor is local to its target and the race goes the wrong way, and TLC exhibits that on a model independent of the Go code, with or without concurrent computation. With the equal-time order fixed, `2009L` removed every failure found by every method here.
+- **Established:** the `2009` computation gate, as reconstructed, admits wrong spikes whenever a spike forecast on the target's own processor delivers its impact after a later-stamped event has been integrated (usually through a local inhibitory synapse, sometimes an excitatory one), and TLC exhibits that on a model independent of the Go code, with or without concurrent computation. With the equal-time order fixed, `2009L` removed every failure found by every method here.
 - **Not established:** that `2009L` is correct for all networks, all channel capacities, or with the environment process sending stimuli over time; or that the published algorithm has the same defect.
 
 ## Next steps
